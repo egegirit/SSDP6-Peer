@@ -1,13 +1,14 @@
 package edu.udo.cs.rvs;
 
-
 import java.util.Scanner;
 
 public class User implements Runnable  {
 
-    User userObject = new User();
-    public Thread userThread = new Thread(userObject);  // sichtbar zu Worker Thread
-    userThread.setName("User Thread");
+    public static boolean exit = false;  // Falls benutzereingabe EXIT, dann auf true setzen, damit while schleifen in threads beenden
+
+    // User userObject = new User();
+    // public Thread userThread = new Thread(userObject);  // sichtbar zu Worker Thread
+    // userThread.setName("User Thread");
     // Optional myWorkerThread.start();
 
     /**
@@ -16,17 +17,20 @@ public class User implements Runnable  {
      */
 
     Scanner sc = new Scanner(System.in);  // Eingabe
+    String input;
 
     @Override
     public void run() {
-
+        System.out.println("  User Thread activated");
         // bis zum Programmende in einer Endlosschleife laufen
-        while( true ){
+        while( !exit ){
 
             if( sc.hasNextLine() ){
-                //String input = sc.nextLine();
-
-            }
+                input = sc.nextLine();
+                this.handleInput( input );                
+            } 
+            
+            // Kein Befehl, schlafen
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
@@ -36,14 +40,16 @@ public class User implements Runnable  {
 
     }
 
-    public void handleInput(String befehl){
+    public static void handleInput(String befehl){
 
         switch (befehl) {
             case "EXIT": {
+                exit = true;
                 System.out.println("Exiting...");
                 break;
             }
             case "CLEAR": {
+                // alle Geräte vergessen, threadsync
                 System.out.println("List Cleared.");
                 break;
             }
@@ -52,6 +58,16 @@ public class User implements Runnable  {
                 break;
             }
             case "SCAN":{
+                
+        byte[] dataToSend = String.valueOf(intToSend).getBytes();
+       DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, destAddr, port);
+       try {
+            socket.send(packet);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    
+
                 System.out.println("Scanning for Devices...");
                 break;
             }
