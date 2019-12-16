@@ -9,14 +9,13 @@ public class List implements Runnable {
     /**
      * Liste als Warteschlange. Die empfangenen Pakete landen hier
      */
-    public static LinkedList<DatagramPacket> queue = new LinkedList<>();  // DatagramPacket Typ koennte falsch sein
+    public static LinkedList<DatagramPacket> dgramList = new LinkedList<>();  // DatagramPacket Typ?
 
-    public static MulticastSocket mcsocket;  // static? Workerda erişim lazım
-    List listObject = new List();
-    public Thread listThread = new Thread(listObject);  // sichtbar zu Worker Thread
-    listThread.setName("List Thread");
-    // Optional myWorkerThread.start();
-
+    public static MulticastSocket mcsocket;  // static? 
+    
+    byte[] b = new byte[BUFFER_LENGTH];  // nicht noetig
+    DatagramPacket dgramPaket = new DatagramPacket(b, b.length);  // Parametern nich noetig?
+    
     /**
      *  Konstruktor öffnet ein MulticastSocket auf Port 1900, und tritt Multicast-Gruppe „239.255.255.250“ bei
      */
@@ -25,6 +24,7 @@ public class List implements Runnable {
         /* dieser Thread soll ein MulticastSocket auf Port 1900 öffnen, .. */
         try {
             this.mcsocket = new MulticastSocket(1990);
+            System.out.println("  Multicast Socked Opened at Port 1900.");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -33,11 +33,13 @@ public class List implements Runnable {
         InetAddress ip = null;
         try {
             ip = InetAddress.getByName("239.255.255.250");
+            System.out.println("  InetAdress 239.255.255.250 initialized.");
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
         try {
             this.mcsocket.joinGroup(ip);
+            System.out.println("  Joined Multicast group: 239.255.255.250.");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -48,14 +50,30 @@ public class List implements Runnable {
      */
     @Override
     public void run() {
-
+        System.out.println("  List Thread activated");
         /* bis zum Programmende endlos Datagramme empfangen und dem Worker-Thread zur Verfügung stellen */
         /* Dies soll solange passieren, wie das DatagramSocket nicht null, gebunden und nicht geschlossen ist. */
-        while( this.mcsocket != null && this.mcsocket.isBound() && !this.mcsocket.isClosed() ){
+        while( this.mcsocket != null && this.mcsocket.isBound() && !this.mcsocket.isClosed() && !(User.exit) ) ){
 
-
+          // Pakete wie bei einem DatagramSocket über die receive-Methode empfangen, empfangene in LinkedList packen
+          mcsocket.receive(dgramPaket);
+          
+          synchronized( this.dgramList ) {
+             this.dgramList.add(dgramPaket);
+          }                    
+          System.out.println("  Datagram Packet added to list.");
+          
+          /*
+           Der Thread soll sich zum Programmende beenden und dabei das MulticastSocket automatisch schließen.
+           */
 
         }
+        // Austritt von while schleife: Programm beenden
+        try {
+          socket.close();
+          System.out.println("Socket closed.");
+        } catch (IOException e) { /* failed */ }
+        
 
     }
 
