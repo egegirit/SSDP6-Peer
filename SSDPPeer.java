@@ -7,13 +7,15 @@ package edu.udo.cs.rvs.ssdp;
  */
 public class SSDPPeer implements Runnable
 {  
-  // Damit die Klassenobjekte zu Worker Thread sichtbar sind
-  public static List listObject;  // static?
+  // public static Damit die Klassenobjekte zu Worker Thread sichtbar sind
+  public static List listObject;  
   public static User userObject;
   public static Worker workerObject;
   
-  public SSDPPeer()
+  public SSDPPeer()  // Wenn in der Main klasse ein Objekt von SSDPPeer erstellt wird, werden Alle klassen und ihre Threads hier inizialisiert
   {
+    System.out.println("SSDPPeer Object created.");
+  
     // List Object erstellen, Thread inizialisieren
     listObject = new List();
     System.out.println("List Object created.");
@@ -39,7 +41,7 @@ public class SSDPPeer implements Runnable
 
   @Override
   public void run() {
-
+    System.out.println("SSDPPeer Thread running.");
     // Threads starten
     listThread.start();
     userThread.start();
