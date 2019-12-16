@@ -11,36 +11,29 @@ import java.nio.charset.StandardCharsets;
  */
 
 public class Worker implements Runnable {
-
-    Worker workerObject = new Worker();
-    Thread workerThread = new Thread(workerObject);
-    workerThread.setName("Worker Thread");
-    // Optional myWorkerThread.start();
-
+    
     /**
      *  Der Worker-Thread, um die Empfangenen Datagramme zu verarbeiten
      */
-    /* ein MulticastSocket auf Port 1900 öffnen, der Multicast-Gruppe „239.255.255.250“
-     beitreten und bis zum Programmende endlos Datagramme empfangen und dem Worker-Thread zur Verfügung stellen. */
-
+  
     /* bis zum Programmende in Endlosschleife laufen */
     @Override
     public void run() {
-
+      // while (!User.exit) {  }
         /**
          *  Als erstes muss geprüft werden, ob überhaupt Datagramme zu abarbeiten vorliegen.
          *  Wenn keine Datagramme vorliegen sollte der Thread einige Millisekunden schlafen um den Prozessor nicht mit unnötig vielen Prüfungen zu überlasten
          */
-        if( !(List.queue.isEmpty()) && !(List.queue == null) ){
+        if( !(List.dgramList.isEmpty()) && !(List.dgramList == null) ){
 
             /**
              * Wenn nun Datagramme vorliegen sollte man sich immer das älteste nehmen und
              * aus der Liste entfernen (Threadsynchronierung!). Danach kann man die Daten des Datagramms auswerten.
              */
-            DatagramPacket p;
-            synchronized(List.queue) {
+            DatagramPacket pkt;
+            synchronized(List.dgramList) {  // fix: sadece pop senkronize olmalı
 
-                p = List.queue.pop();  // DatagramPacket Typ koennte falsch sein
+                pkt = List.dgramList.pop();  
 
                 /** die Daten des Datagramms auswerten */
 
@@ -49,8 +42,25 @@ public class Worker implements Runnable {
 
                 try {
                     if( reader.ready() ){  // ready gibt Auskunft darüber, ob aktuell eine vollständige Zeile gelesen werden kann.
-                        String line = reader.readLine(); // Liest eine Zeile ohne Zeilenumbruch
+                      
+                        String lines = new String( pkt.getData(), StandardCharsets.UTF_8 );
+                        String[] line = lines.split("\\r?\\n");
+                        
+                        // Erste Zeile = Pakettyp ueberpruefen
+                        if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+                          System.out.println("Unicast packet identified.");
+                        }
+                        else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){
+                          System.out.println("Multicast packet identified.");
+                        }
+                        else {
+                          System.out.println("Packet type unknown.");
+                        }
+                        
+                        // String line = reader.readLine(); // Liest eine Zeile ohne Zeilenumbruch
                         //  [...]
+                        
+                        
                         reader.close(); // Schließt automatisch auch den streamReader
 
                         /* String lines = new String(dp.getData(), StandardCharsets.UTF_8);
@@ -92,7 +102,7 @@ public class Worker implements Runnable {
         }
         else{
             try {
-
+              Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
