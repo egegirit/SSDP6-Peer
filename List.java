@@ -50,7 +50,7 @@ public class List implements Runnable {
      */
     @Override
     public void run() {
-        System.out.println("  List Thread activated");
+        System.out.println("  List Thread running");
         /* bis zum Programmende endlos Datagramme empfangen und dem Worker-Thread zur Verfügung stellen */
         /* Dies soll solange passieren, wie das DatagramSocket nicht null, gebunden und nicht geschlossen ist. */
         while( this.mcsocket != null && this.mcsocket.isBound() && !this.mcsocket.isClosed() && !(User.exit) ) ){
