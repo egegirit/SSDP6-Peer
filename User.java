@@ -21,7 +21,7 @@ public class User implements Runnable  {
 
     @Override
     public void run() {
-        System.out.println("  User Thread activated");
+        System.out.println("  User Thread running.");
         // bis zum Programmende in einer Endlosschleife laufen
         while( !exit ){
 
@@ -36,10 +36,13 @@ public class User implements Runnable  {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+        } // while end
 
     }
 
+    /** 
+    Methode zum erkennen und bearbeiten der Benutzereingaben
+    */
     public static void handleInput(String befehl){
 
         switch (befehl) {
@@ -58,22 +61,20 @@ public class User implements Runnable  {
                 break;
             }
             case "SCAN":{
-                
-        byte[] dataToSend = String.valueOf(intToSend).getBytes();
-       DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, destAddr, port);
-       try {
-            socket.send(packet);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    
-
                 System.out.println("Scanning for Devices...");
+                
+                byte[] dataToSend = String.valueOf(intToSend).getBytes();
+                DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, destAddr, port);
+                try {
+                    socket.send(packet);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }                
                 break;
             }
             default: { System.out.println("Wrong Input: " + befehl); }
 
-        }
+        } // switch case end
 
     }
 
