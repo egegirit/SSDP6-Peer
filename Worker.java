@@ -19,7 +19,8 @@ public class Worker implements Runnable {
     /* bis zum Programmende in Endlosschleife laufen */
     @Override
     public void run() {
-      // while (!User.exit) {  }
+      while (!User.exit) { 
+          
         /**
          *  Als erstes muss geprüft werden, ob überhaupt Datagramme zu abarbeiten vorliegen.
          *  Wenn keine Datagramme vorliegen sollte der Thread einige Millisekunden schlafen um den Prozessor nicht mit unnötig vielen Prüfungen zu überlasten
@@ -30,10 +31,11 @@ public class Worker implements Runnable {
              * Wenn nun Datagramme vorliegen sollte man sich immer das älteste nehmen und
              * aus der Liste entfernen (Threadsynchronierung!). Danach kann man die Daten des Datagramms auswerten.
              */
+            
             DatagramPacket pkt;
-            synchronized(List.dgramList) {  // fix: sadece pop senkronize olmalı
-
-                pkt = List.dgramList.pop();  
+            synchronized(List.dgramList) {
+                pkt = List.dgramList.pop();
+            }
 
                 /** die Daten des Datagramms auswerten */
 
@@ -57,21 +59,10 @@ public class Worker implements Runnable {
                           System.out.println("Packet type unknown.");
                         }
                         
-                        // String line = reader.readLine(); // Liest eine Zeile ohne Zeilenumbruch
-                        //  [...]
-                        
-                        
-                        reader.close(); // Schließt automatisch auch den streamReader
-
+                        // String line = reader.readLine(); // Liest eine Zeile ohne Zeilenumbruch                                   
                         /* String lines = new String(dp.getData(), StandardCharsets.UTF_8);
-                         String[] line = lines.split("\\r?\\n");
-                         if (line[0].equalsIgnoreCase("M-SEARCH * HTTP/1.1")) {
-
-                            for(int var9 = 0; var9 < var10; ++var9) {
-                                String l = var11[var9];
-                                if (l.startsWith("S: ")) {
+                        if (l.startsWith("S: ")) {
                                 u = l.split("S: ", 2)[1].split("uuid:", 2)[1];
-
                                  try {
                                      uuid = UUID.fromString(u);
                                  } catch (Exception var14) {
@@ -84,30 +75,29 @@ public class Worker implements Runnable {
                                  st = l.split("ST: ", 2)[1];
                                 }
                             }
-
                          }
                          else if(){
                          }
                          else { System.out.println("Datagrammfortmat nicht erkannt"); }
-
                         */
-
-                    }
+                    } // 2. if end
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-            }
-
-        }
+        } // 1. If end
         else{
             try {
               Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+        } // 1. If Else end
+          
+      } // while schleife end
+        
+      // Austritt der while schleife nur wenn User EXIT Befehl eingibt
+      reader.close(); // Schließt automatisch auch den streamReader
+        
+    } // run end
 
-    }
-
-}
+} // Klasse end
