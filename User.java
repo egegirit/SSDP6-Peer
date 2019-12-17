@@ -58,13 +58,14 @@ public class User implements Runnable  {
             }
             case "LIST": {
                 System.out.println("Listing Devices:");
+                // ...
                 break;
             }
             case "SCAN":{
                 System.out.println("Scanning for Devices...");
                 
-                byte[] dataToSend = String.valueOf(intToSend).getBytes();
-                DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, destAddr, port);
+                // byte[] dataToSend = String.valueOf(intToSend).getBytes();
+                // DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, destAddr, port);
                 try {
                     socket.send(packet);
                 } catch (IOException e) {
