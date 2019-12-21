@@ -67,6 +67,9 @@ public class User implements Runnable  {
                 int buffersize = socket.getReceiveBufferSize();
                 // byte[] dataToSend = String.valueOf(intToSend).getBytes();
                 // DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, destAddr, port);
+                // PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
+                // printWriter.write(StringToSend);
+                // printWriter.flush();
                 try {
                     List.mcsocket.send(packet);
                 } catch (IOException e) {
