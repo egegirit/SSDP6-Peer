@@ -56,7 +56,7 @@ public class Worker implements Runnable {
                           System.out.println("Multicast packet identified.");
                         }
                         else {
-                          System.out.println("Packet type unknown.");
+                          System.out.println( "Packet type unknown: " + line[0] );
                         }
                         
                         // String line = reader.readLine(); // Liest eine Zeile ohne Zeilenumbruch                                   
