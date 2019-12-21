@@ -63,11 +63,12 @@ public class User implements Runnable  {
             }
             case "SCAN":{
                 System.out.println("Scanning for Devices...");
-                
+
+                int buffersize = socket.getReceiveBufferSize();
                 // byte[] dataToSend = String.valueOf(intToSend).getBytes();
                 // DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, destAddr, port);
                 try {
-                    socket.send(packet);
+                    List.mcsocket.send(packet);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }                
