@@ -64,7 +64,7 @@ public class User implements Runnable  {
             case "SCAN":{
                 System.out.println("Scanning for Devices...");
 
-                int buffersize = socket.getReceiveBufferSize();
+                int buffersize = List.mcsocket.getReceiveBufferSize();
                 // byte[] dataToSend = String.valueOf(intToSend).getBytes();
                 // DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, destAddr, port);
                 // PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
