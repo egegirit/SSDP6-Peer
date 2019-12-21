@@ -55,8 +55,26 @@ public class List implements Runnable {
         /* Dies soll solange passieren, wie das DatagramSocket nicht null, gebunden und nicht geschlossen ist. */
         while( this.mcsocket != null && this.mcsocket.isBound() && !this.mcsocket.isClosed() && !(User.exit) ) ){
 
-          // Pakete wie bei einem DatagramSocket über die receive-Methode empfangen, empfangene in LinkedList packen
+           Pakete wie bei einem DatagramSocket über die receive-Methode empfangen, empfangene in LinkedList packen
           mcsocket.receive(dgramPaket);
+
+          // Lösung in Übung
+
+          /* try {
+	  // Puffer erstellen, Paket empfangen und in die Queue einreihen.
+                  DatagramPacket buffer = createBuffer();
+	          this.mcsocket.receive(buffer);
+	          queuePacket(buffer);
+				
+	      } catch (SocketException sexc) {
+	      // Fehlerbehandlung
+	       sexc.printStackTrace();
+	      } catch (IOException ioexc) {
+	      // Fehlerbehandlung
+	      ioexc.printStackTrace();
+	      }
+
+          */
           
           synchronized( this.dgramList ) {
              this.dgramList.add(dgramPaket);
