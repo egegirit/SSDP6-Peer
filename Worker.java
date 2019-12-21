@@ -51,6 +51,20 @@ public class Worker implements Runnable {
                         // Erste Zeile = Pakettyp ueberpruefen
                         if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {
                           System.out.println("Unicast packet identified.");
+           
+                          /* Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern
+                           */
+                          for( int i = 1; i< line.length; i++){
+                            if( line[i].startsWith("ST: ") ){
+                                // "example string".split(":", 2)
+                            }
+                            else if( line[i].startsWith("USN: ") ) {
+
+                            }
+
+
+                          }
+
                         }
                         else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){
                           System.out.println("Multicast packet identified.");
