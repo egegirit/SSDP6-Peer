@@ -39,8 +39,8 @@ public class Worker implements Runnable {
 
                 /** die Daten des Datagramms auswerten */
 
-                InputStreamReader streamReader = new InputStreamReader(„inputStream“, StandardCharsets.UTF_8);  // Inputstream ??
-                BufferedReader reader = new BufferedReader(streamReader);
+                // InputStreamReader streamReader = new InputStreamReader(„inputStream“, StandardCharsets.UTF_8);  // Inputstream ??
+                // BufferedReader reader = new BufferedReader(streamReader);
 
                 try {
                     if( reader.ready() ){  // ready gibt Auskunft darüber, ob aktuell eine vollständige Zeile gelesen werden kann.
