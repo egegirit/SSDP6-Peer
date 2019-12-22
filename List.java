@@ -12,7 +12,8 @@ public class List implements Runnable {
     public static LinkedList<DatagramPacket> dgramList = new LinkedList<>();
 
     public static MulticastSocket mcsocket;  // public static -> sichtbar zu anderen Klassen
-    
+    InetAddress ip;
+
     // byte[] b = new byte[BUFFER_LENGTH];  // nicht noetig
     // DatagramPacket dgramPaket = new DatagramPacket(b, b.length);
     
@@ -32,7 +33,7 @@ public class List implements Runnable {
         }
 
         // Multicast-Gruppe „239.255.255.250“ beitreten
-        InetAddress ip = null;
+
         try {
             ip = InetAddress.getByName("239.255.255.250");
             System.out.println("  InetAdress 239.255.255.250 initialized.");
@@ -82,7 +83,9 @@ public class List implements Runnable {
         }
         // Austritt von while schleife: Programm beenden
         try {
-          socket.close();
+          this.mcsocket.leaveGroup(ip);
+          System.out.println("Socket leaving group 239.255.255.250.");
+          this.mcsocket.close();
           System.out.println("Socket closed.");
         } catch (IOException e) { /* failed */ }
 

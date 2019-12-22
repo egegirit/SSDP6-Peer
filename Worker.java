@@ -34,70 +34,41 @@ public class Worker implements Runnable {
             
             DatagramPacket pkt;
             synchronized(List.dgramList) {
-                pkt = List.dgramList.pop();
+                pkt = List.dgramList.poll();  // poll retrieves and removes the head (first element) of this list.
             }
 
                 /** die Daten des Datagramms auswerten */
 
-                // InputStreamReader streamReader = new InputStreamReader(„inputStream“, StandardCharsets.UTF_8);  // Inputstream ??
-                // BufferedReader reader = new BufferedReader(streamReader);
+                buffer = new byte[1024];
+                buffer = pkt.getData();
+                String empfangen = new String(buffer, StandardCharsets.UTF_8);
+                System.out.println("Received (Test 1): "+ new String(buffer));  // new String(buffer) und empfangen sollen gleich sein,
+                System.out.println("Received (Test 2): "+ empfangen);
 
-                try {
-                    if( reader.ready() ){  // ready gibt Auskunft darüber, ob aktuell eine vollständige Zeile gelesen werden kann.
-                      
-                        String lines = new String( pkt.getData(), StandardCharsets.UTF_8 );
-                        String[] line = lines.split("\\r?\\n");
-                        
-                        // Erste Zeile = Pakettyp ueberpruefen
-                        if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {
-                          System.out.println("Unicast packet identified.");
-           
-                          /* Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern
-                           */
-                          for( int i = 1; i< line.length; i++){
-                            if( line[i].startsWith("ST: ") ){
-                                // "example string".split(":", 2)
-                            }
-                            else if( line[i].startsWith("USN: ") ) {
+                String[] line = empfangen.split("\\r?\\n");  // Empfangene string in Zeilen zerlegen
+                if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+                    System.out.println("Unicast packet identified.");
 
-                            }
+                    // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern
 
-
-                          }
+                    for( int i = 1; i< line.length; i++){
+                        if( line[i].startsWith("ST: ") ){
+                            // "example string".split(":", 2)
+                        }
+                        else if( line[i].startsWith("USN: ") ) {
 
                         }
-                        else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){
-                          System.out.println("Multicast packet identified.");
-                        }
-                        else {
-                          System.out.println( "Packet type unknown: " + line[0] );
-                        }
-                        
-                        // String line = reader.readLine(); // Liest eine Zeile ohne Zeilenumbruch                                   
-                        /* String lines = new String(dp.getData(), StandardCharsets.UTF_8);
-                        if (l.startsWith("S: ")) {
-                                u = l.split("S: ", 2)[1].split("uuid:", 2)[1];
-                                 try {
-                                     uuid = UUID.fromString(u);
-                                 } catch (Exception var14) {
-                                 System.out.println("UUID in invalid format!");
-                                 return;
-                                }
-                                  } else if (l.startsWith("MAN: ")) {
-                                man = l.split("MAN: ", 2)[1];
-                                } else if (l.startsWith("ST: ")) {
-                                 st = l.split("ST: ", 2)[1];
-                                }
-                            }
-                         }
-                         else if(){
-                         }
-                         else { System.out.println("Datagrammfortmat nicht erkannt"); }
-                        */
-                    } // 2. if end
-                } catch (IOException e) {
-                    e.printStackTrace();
+
+                    }
+
                 }
+                else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){
+                    System.out.println("Multicast packet identified.");
+                }
+                else {
+                    System.out.println( "Packet type unknown: " + line[0] );
+                }
+
         } // 1. If end
         else{
             try {
