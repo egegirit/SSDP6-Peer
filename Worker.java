@@ -46,11 +46,11 @@ public class Worker implements Runnable {
                 System.out.println("Received (Test 2): "+ empfangen);
 
                 String[] line = empfangen.split("\\r?\\n");  // Empfangene string in Zeilen zerlegen
-                if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {
+
+                if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {  // die erste Zeile ist der Typ des Pakets
                     System.out.println("Unicast packet identified.");
 
-                    // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern
-
+                    // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (ST und USN sind wichtig bei Unicast)
                     for( int i = 1; i< line.length; i++){
                         if( line[i].startsWith("ST: ") ){
                             // "example string".split(":", 2)
@@ -62,14 +62,29 @@ public class Worker implements Runnable {
                     }
 
                 }
-                else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){
+                else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){  // die erste Zeile ist der Typ des Paket
                     System.out.println("Multicast packet identified.");
+
+                    // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (NT, USN und NTS sind wichtig bei Multicast)
+                    for( int i = 1; i< line.length; i++){
+                        if( line[i].startsWith("NT: ") ){
+                            // "example string".split(":", 2)
+                        }
+                        else if( line[i].startsWith("USN: ") ) {
+
+                        }
+                        else if( line[i].startsWith("NTS: ") ) {
+
+                        }
+
+                    }
                 }
-                else {
+                else {  // Kein bekannter Pakettyp erkannt
                     System.out.println( "Packet type unknown: " + line[0] );
                 }
 
         } // 1. If end
+        // Datagram Liste ist leer, schlafen
         else{
             try {
               Thread.sleep(10);
