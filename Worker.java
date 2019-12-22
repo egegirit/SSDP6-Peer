@@ -1,3 +1,5 @@
+package edu.udo.cs.rvs;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.DatagramPacket;

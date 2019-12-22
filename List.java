@@ -1,3 +1,5 @@
+package edu.udo.cs.rvs;
+
 import java.net.*;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -7,11 +9,11 @@ import java.net.DatagramPacket;
 public class List implements Runnable {
 
     /**
-     * Liste als Warteschlange. Die empfangenen Pakete landen hier
+     * Liste als LinkedList. Die empfangenen Pakete landen hier
      */
     public static LinkedList<DatagramPacket> dgramList = new LinkedList<>();
-
-    public static MulticastSocket mcsocket;  // public static -> sichtbar zu anderen Klassen
+    // public static LinkedList< ?? > deviceList = new LinkedList<>();   // Liste um die Informationen von den Geraeten zu speichern/zeigen (Enthaelt eine UUID und ein oder mehr Dienst-Typen)
+    public static MulticastSocket mcsocket;                              // public static -> socket ist sichtbar zu anderen Klassen
     InetAddress ip;
 
     // byte[] b = new byte[BUFFER_LENGTH];  // nicht noetig
@@ -58,10 +60,11 @@ public class List implements Runnable {
         /* Dies soll solange passieren, wie das DatagramSocket nicht null, gebunden und nicht geschlossen ist. */
         while( (this.mcsocket != null) && (this.mcsocket.isBound()) && !(this.mcsocket.isClosed()) && !(User.exit) ) ){
 
-          // Lösung in Übung
+          // Lösung in Übung 6
+          DatagramPacket buffer;
           try {
 	      // Puffer erstellen, Paket empfangen und in die Liste einfügen.
-              DatagramPacket buffer = createBuffer();
+              buffer = createBuffer();
 	          this.mcsocket.receive(buffer);
 	      // Fehlerbehandlung
 	      } catch (SocketException sexc) {

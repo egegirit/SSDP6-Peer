@@ -98,13 +98,9 @@ public class User implements Runnable  {
                 dataOutputStream.flush(); // send the message
                 dataOutputStream.close(); // close the output stream
 
-                // List.mcsocket.send();  wurde durch dataOutputStream.writeUTF() ersetzt
+                // 2. Möglichkeit zu senden ist: List.mcsocket.send( paket );
+                // das wurde durch dataOutputStream.writeUTF() ersetzt
 
-                try {
-                    List.mcsocket.send( packet );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }                
                 break;
             }
             default: { System.out.println("Wrong Input: " + befehl); }
