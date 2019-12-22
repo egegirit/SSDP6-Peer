@@ -9,19 +9,21 @@ public class List implements Runnable {
     /**
      * Liste als Warteschlange. Die empfangenen Pakete landen hier
      */
-    public static LinkedList<DatagramPacket> dgramList = new LinkedList<>();  // DatagramPacket Typ?
+    public static LinkedList<DatagramPacket> dgramList = new LinkedList<>();
 
-    public static MulticastSocket mcsocket;  // static? 
+    public static MulticastSocket mcsocket;  // public static -> sichtbar zu anderen Klassen
     
-    byte[] b = new byte[BUFFER_LENGTH];  // nicht noetig
-    DatagramPacket dgramPaket = new DatagramPacket(b, b.length);  // Parametern nich noetig?
+    // byte[] b = new byte[BUFFER_LENGTH];  // nicht noetig
+    // DatagramPacket dgramPaket = new DatagramPacket(b, b.length);
     
     /**
      *  Konstruktor öffnet ein MulticastSocket auf Port 1900, und tritt Multicast-Gruppe „239.255.255.250“ bei
      */
     public List(){
 
-        /* dieser Thread soll ein MulticastSocket auf Port 1900 öffnen, .. */
+        // Folgende Codes können auch am Anfang der run methode geschrieben werden
+
+        /* ein MulticastSocket auf Port 1900 öffnen, .. */
         try {
             this.mcsocket = new MulticastSocket(1990);
             System.out.println("  Multicast Socked Opened at Port 1900.");
@@ -53,31 +55,23 @@ public class List implements Runnable {
         System.out.println("  List Thread running");
         /* bis zum Programmende endlos Datagramme empfangen und dem Worker-Thread zur Verfügung stellen */
         /* Dies soll solange passieren, wie das DatagramSocket nicht null, gebunden und nicht geschlossen ist. */
-        while( this.mcsocket != null && this.mcsocket.isBound() && !this.mcsocket.isClosed() && !(User.exit) ) ){
-
-          // Pakete wie bei einem DatagramSocket über die receive-Methode empfangen, empfangene in LinkedList packen
-          mcsocket.receive(dgramPaket);
+        while( (this.mcsocket != null) && (this.mcsocket.isBound()) && !(this.mcsocket.isClosed()) && !(User.exit) ) ){
 
           // Lösung in Übung
-
-          /* try {
-	  // Puffer erstellen, Paket empfangen und in die Queue einreihen.
-                  DatagramPacket buffer = createBuffer();
+          try {
+	      // Puffer erstellen, Paket empfangen und in die Liste einfügen.
+              DatagramPacket buffer = createBuffer();
 	          this.mcsocket.receive(buffer);
-	          queuePacket(buffer);
-				
+	      // Fehlerbehandlung
 	      } catch (SocketException sexc) {
-	      // Fehlerbehandlung
-	       sexc.printStackTrace();
+	          sexc.printStackTrace();
 	      } catch (IOException ioexc) {
-	      // Fehlerbehandlung
-	      ioexc.printStackTrace();
+	         ioexc.printStackTrace();
 	      }
 
-          */
-          
+          // Empfangene paket in die Liste einfügen, Threadsyncronisation
           synchronized( this.dgramList ) {
-             this.dgramList.add(dgramPaket);
+             this.dgramList.add( buffer );
           }                    
           System.out.println("  Datagram Packet added to list.");
           
@@ -91,7 +85,6 @@ public class List implements Runnable {
           socket.close();
           System.out.println("Socket closed.");
         } catch (IOException e) { /* failed */ }
-        
 
     }
 
