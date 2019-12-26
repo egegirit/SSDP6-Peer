@@ -1,4 +1,4 @@
-package edu.udo.cs.rvs;
+package edu.udo.cs.rvs.ssdp;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -59,7 +59,10 @@ public class Worker implements Runnable {
         
     } // run end
 
-    /** die Daten des Datagramms auswerten */
+
+    /** die Daten des Datagramms auswerten:
+     *  Es wird ein neues Geraet erstellt und je nach empfangenem Pakettyp (Unicast/Multicast) werden die Daten vom Geraet initialisiert
+     */
     public static handlePacket( DatagramPacket pkt ){
         // Neues Geraet initialisieren
         public Device dvc = new Device();
@@ -77,13 +80,13 @@ public class Worker implements Runnable {
 
         if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {  // die erste Zeile ist der Typ des Pakets
             System.out.println("Unicast packet identified.");
-
+            dvc.DeviceTyp = "Unicast";
             UUID uuid = null;
             String uuidString = null
             String st = null;
 
             // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (ST und USN sind wichtig bei Unicast)
-            for( int i = 1; i< line.length; i++ ){
+            for( int i = 1; i < line.length; i++ ){
 
                 if( line[i].startsWith("USN: ") ) {  // UUID
                     // Erst "USN:" trennen dann "uuid:" trennen, dann bleibt nur uuid Nummber übrig
@@ -101,32 +104,54 @@ public class Worker implements Runnable {
                 else if( line[i].startsWith("ST: ") ){  // Service Typ
 
                     st = line[i].split("ST: ", 2)[1];
+                    dvc.serviceType = st;
 
                 }
 
             }
-
 
         }
         else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){  // die erste Zeile ist der Typ des Paket
             System.out.println("Multicast packet identified.");
+            dvc.DeviceTyp = "Multicast";
+            UUID uuid = null;
+            String uuidString = null
+            String nt = null;
+            String nts = null;
 
             // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (NT, USN und NTS sind wichtig bei Multicast)
-            for( int i = 1; i< line.length; i++){
-                if( line[i].startsWith("NT: ") ){
-                    // "example string".split(":", 2)
+            for( int i = 1; i < line.length; i++ ){
+                if( line[i].startsWith("NT: ") ){  // Service-Type
+
+                    nt = line[i].split("NT: ", 2)[1];
+                    dvc.nt = nt;
+
                 }
                 else if( line[i].startsWith("USN: ") ) {  // UUID
+
+                    // Erst "USN:" trennen dann "uuid:" trennen, dann bleibt nur uuid Nummber übrig
+                    uuidString = line[i].split("USN: ", 2)[1].split("uuid:", 2)[1];
+                    dvc.uuidString = uuidString;
+                    try {
+                        uuid = UUID.fromString(uuidString);
+                        dvc.uuid = uuid;
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
                 }
                 else if( line[i].startsWith("NTS: ") ) {
 
+                    nts = line[i].split("NTS: ", 2)[1];
+                    dvc.nts = nts;
                 }
 
             }
         }
-        else {  // Kein bekannter Pakettyp erkannt
+        else {  // Kein bekannter Pakettyp erkannt, pakettyp anzeigen
             System.out.println( "Packet type unknown: " + line[0] );
+            dvc.DeviceTyp = "Unknown: " + line[0];
         }
 
     }

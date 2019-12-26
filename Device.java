@@ -1,4 +1,4 @@
-package edu.udo.cs.rvs;
+package edu.udo.cs.rvs.ssdp;
 
 import java.net.*;
 import java.io.IOException;
@@ -8,6 +8,7 @@ import java.net.DatagramPacket;
 
 public class Device {
 
+    String DeviceTyp = null;  // Unicast or Multicast
     String lines = null;
     UUID uuid = null;
     String uuidString = null;
@@ -19,9 +20,23 @@ public class Device {
     public void showDevice( Device d ){
         // Beispielformat: abcdef01-7dec-11d0-a765-a0a0c91e6bf6 - ge:fridge, ge:ice-dispenser
         //                 17bb6bfd-3bde-4810-b89c-c39c2a1183ac - urn:service:WANPPPConnection
-        System.out.print( uuidString + " - " + );
-        System.out.print( serviceType + " ");  //
-        System.out.print( nt );
+
+        if ( d.DeviceTyp.equals("Unicast") ) {  // ST und USN wichtig
+
+            System.out.print( uuidString + " - " );
+            System.out.print( serviceType + " ");
+
+        }
+        else if ( d.DeviceTyp.equals("Multicast") ) {  // NT, USN, NTS wichtig
+
+            System.out.print( uuidString + " - " );
+            // Beim Abmelden (ssdp:byebye)  ist der Dienst-Typ irrelevant
+            if( d.nts.equals("ssdp:alive") ){ System.out.print( nt ); }
+
+        }
+        else {
+            // Pakettyp nicht bekannt, ignorieren
+        }
 
     }
 

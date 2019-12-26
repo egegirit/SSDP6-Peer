@@ -1,4 +1,4 @@
-package edu.udo.cs.rvs;
+package edu.udo.cs.rvs.ssdp;
 
 import java.util.Scanner;
 import java.util.*;
@@ -64,7 +64,7 @@ public class User implements Runnable  {
 
                 synchronized( List.deviceList ) {
                     for (Device d : List.deviceList) {
-                        d.show(d);
+                        d.showDevice(d);
                     }
                 }
 

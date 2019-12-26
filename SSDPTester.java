@@ -1,4 +1,4 @@
-package ssdpTester;
+package edu.udo.cs.rvs.ssdp;
 
 import java.util.UUID;
 import java.nio.charset.StandardCharsets;

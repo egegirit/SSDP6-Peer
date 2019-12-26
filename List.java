@@ -1,4 +1,4 @@
-package edu.udo.cs.rvs;
+package edu.udo.cs.rvs.ssdp;
 
 import java.net.*;
 import java.io.IOException;
