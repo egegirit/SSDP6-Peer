@@ -66,6 +66,11 @@ public class List implements Runnable {
 	      // Puffer erstellen, Paket empfangen und in die Liste einfügen.
               buffer = createBuffer();
 	          this.mcsocket.receive(buffer);
+
+	          // Alternative:
+              // DatagramPacket dp = new DatagramPacket(new byte[this.mcsocket.getReceiveBufferSize()], this.mcsocket.getReceiveBufferSize());
+              // this.ms.receive(dp);
+
 	      // Fehlerbehandlung
 	      } catch (SocketException sexc) {
 	          sexc.printStackTrace();

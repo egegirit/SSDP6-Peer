@@ -39,51 +39,8 @@ public class Worker implements Runnable {
                 pkt = List.dgramList.poll();  // poll retrieves and removes the head (first element) of this list.
             }
 
-                /** die Daten des Datagramms auswerten */
-
-                buffer = new byte[1024];
-                buffer = pkt.getData();
-                String empfangen = new String(buffer, StandardCharsets.UTF_8);
-                System.out.println("Received (Test 1): "+ new String(buffer));  // new String(buffer) und empfangen sollen gleich sein,
-                System.out.println("Received (Test 2): "+ empfangen);
-
-                String[] line = empfangen.split("\\r?\\n");  // Empfangene string in Zeilen zerlegen
-
-                if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {  // die erste Zeile ist der Typ des Pakets
-                    System.out.println("Unicast packet identified.");
-
-                    // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (ST und USN sind wichtig bei Unicast)
-                    for( int i = 1; i< line.length; i++){
-                        if( line[i].startsWith("ST: ") ){
-                            // "example string".split(":", 2)
-                        }
-                        else if( line[i].startsWith("USN: ") ) {
-
-                        }
-
-                    }
-
-                }
-                else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){  // die erste Zeile ist der Typ des Paket
-                    System.out.println("Multicast packet identified.");
-
-                    // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (NT, USN und NTS sind wichtig bei Multicast)
-                    for( int i = 1; i< line.length; i++){
-                        if( line[i].startsWith("NT: ") ){
-                            // "example string".split(":", 2)
-                        }
-                        else if( line[i].startsWith("USN: ") ) {
-
-                        }
-                        else if( line[i].startsWith("NTS: ") ) {
-
-                        }
-
-                    }
-                }
-                else {  // Kein bekannter Pakettyp erkannt
-                    System.out.println( "Packet type unknown: " + line[0] );
-                }
+            /** die Daten des Datagramms auswerten */
+            handlePacket( pkt );
 
         } // 1. If end
         // Datagram Liste ist leer, schlafen
@@ -101,5 +58,54 @@ public class Worker implements Runnable {
       reader.close(); // Schließt automatisch auch den streamReader
         
     } // run end
+
+    /** die Daten des Datagramms auswerten */
+    public static handlePacket( DatagramPacket pkt ){
+
+        buffer = new byte[1024];
+        buffer = pkt.getData();
+        String empfangen = new String(buffer, StandardCharsets.UTF_8);
+        System.out.println("Received (Test 1): "+ new String(buffer));  // new String(buffer) und empfangen sollen gleich sein,
+        System.out.println("Received (Test 2): "+ empfangen);  // zum Testen, delete
+
+        String[] line = empfangen.split("\\r?\\n");  // Empfangene string in Zeilen zerlegen
+
+        if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {  // die erste Zeile ist der Typ des Pakets
+            System.out.println("Unicast packet identified.");
+
+            // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (ST und USN sind wichtig bei Unicast)
+            for( int i = 1; i< line.length; i++){
+                if( line[i].startsWith("ST: ") ){
+                    // "example string".split(":", 2)
+                }
+                else if( line[i].startsWith("USN: ") ) {
+
+                }
+
+            }
+
+        }
+        else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){  // die erste Zeile ist der Typ des Paket
+            System.out.println("Multicast packet identified.");
+
+            // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (NT, USN und NTS sind wichtig bei Multicast)
+            for( int i = 1; i< line.length; i++){
+                if( line[i].startsWith("NT: ") ){
+                    // "example string".split(":", 2)
+                }
+                else if( line[i].startsWith("USN: ") ) {
+
+                }
+                else if( line[i].startsWith("NTS: ") ) {
+
+                }
+
+            }
+        }
+        else {  // Kein bekannter Pakettyp erkannt
+            System.out.println( "Packet type unknown: " + line[0] );
+        }
+
+    }
 
 } // Klasse end
