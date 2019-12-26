@@ -15,20 +15,14 @@ import java.io.DataOutputStream;
 
 public class List implements Runnable {
 
-    /**
-     * Liste als LinkedList. Die empfangenen Pakete landen hier
-     */
+    /** Die empfangenen Pakete werden hier gespeichert, dann wird immer das aelteste bearbeitet  */
     public static LinkedList<DatagramPacket> dgramList = new LinkedList<>();
-    public static LinkedList< Device > deviceList = new LinkedList<>();   // Liste um die Informationen von den Geraeten zu speichern/zeigen (Enthaelt eine UUID und ein oder mehr Dienst-Typen)
+    /** Liste um die Informationen von den Geraeten zu speichern/zeigen (Ein Geraet enthaelt eine UUID und ein oder mehr Dienst-Typen)  */
+    public static LinkedList< Device > deviceList = new LinkedList<>();
     public static MulticastSocket mcsocket;                              // public static -> socket ist sichtbar zu anderen Klassen
     InetAddress ip;
 
-    // byte[] b = new byte[BUFFER_LENGTH];  // nicht noetig
-    // DatagramPacket dgramPaket = new DatagramPacket(b, b.length);
-    
-    /**
-     *  Konstruktor öffnet ein MulticastSocket auf Port 1900, und tritt Multicast-Gruppe „239.255.255.250“ bei
-     */
+    /** Konstruktor öffnet ein MulticastSocket auf Port 1900, und tritt Multicast-Gruppe „239.255.255.250“ bei  */
     public List(){
 
         // Folgende Codes können auch am Anfang der run methode geschrieben werden
@@ -36,7 +30,7 @@ public class List implements Runnable {
         /* ein MulticastSocket auf Port 1900 öffnen, .. */
         try {
             this.mcsocket = new MulticastSocket(1990);
-            System.out.println("  Multicast Socked Opened at Port 1900.");
+            // System.out.println("  Multicast Socked Opened at Port 1900.");  // DEBUG
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -45,13 +39,13 @@ public class List implements Runnable {
 
         try {
             ip = InetAddress.getByName("239.255.255.250");
-            System.out.println("  InetAdress 239.255.255.250 initialized.");
+            // System.out.println("  InetAdress 239.255.255.250 initialized.");  // DEBUG
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
         try {
             this.mcsocket.joinGroup(ip);
-            System.out.println("  Joined Multicast group: 239.255.255.250.");
+            //  System.out.println("  Joined Multicast group: 239.255.255.250.");  // DEBUG
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -62,7 +56,7 @@ public class List implements Runnable {
      */
     @Override
     public void run() {
-        System.out.println("  List Thread running");
+        // System.out.println("  List Thread running");  // DEBUG
         /* bis zum Programmende endlos Datagramme empfangen und dem Worker-Thread zur Verfügung stellen */
         /* Dies soll solange passieren, wie das DatagramSocket nicht null, gebunden und nicht geschlossen ist. */
         while( (this.mcsocket != null) && (this.mcsocket.isBound()) && !(this.mcsocket.isClosed()) && !(User.exit) ){
@@ -77,9 +71,9 @@ public class List implements Runnable {
             try {
 	      // Puffer erstellen, Paket empfangen und in die Liste einfügen.
               buffer = new DatagramPacket(new byte[this.mcsocket.getReceiveBufferSize()], this.mcsocket.getReceiveBufferSize());
-              System.out.println("  Waiting for an incoming packet.");
+              // System.out.println("  Waiting for an incoming packet.");  // DEBUG
 	          this.mcsocket.receive(buffer);
-              System.out.println("  Datagram Packet received.");
+              // System.out.println("  Datagram Packet received.");  // DEBUG
 
 	      // Fehlerbehandlung
 	      } catch (SocketException sexc) {
@@ -92,20 +86,11 @@ public class List implements Runnable {
           synchronized( this.dgramList ) {
              this.dgramList.add( buffer );
           }                    
-          System.out.println("  Datagram Packet added to list.");
-          
-          /*
-           Der Thread soll sich zum Programmende beenden und dabei das MulticastSocket automatisch schließen.
-           */
+          // System.out.println("  Datagram Packet added to list.");  // DEBUG
+
+            /** Socket wird in User Klasse automatisch geschlossen, wenn User "exit" eingibt */
 
         }
-        // Austritt von while schleife: Programm beenden
-        try {
-          this.mcsocket.leaveGroup(ip);
-          System.out.println("Socket leaving group 239.255.255.250.");
-          this.mcsocket.close();
-          System.out.println("Socket closed.");
-        } catch (IOException e) { /* failed */ }
 
     }
 

@@ -18,7 +18,6 @@ public class User implements Runnable  {
 
     /**
      *  die Nutzereingaben lesen, verarbeiten und entsprechende Aktionen durchführen.
-     *  Entsprechend verwaltet dieser Thread die anderen beiden Threads.
      */
 
     Scanner sc = new Scanner(System.in);  // Eingabe
@@ -45,6 +44,9 @@ public class User implements Runnable  {
 
     }
 
+    /**
+     *  Eine Suchanfrage nach Geraeten senden.
+     */
     public static void scanDevices(){
 
         UUID uuid = null;
@@ -55,29 +57,26 @@ public class User implements Runnable  {
             e.printStackTrace();
         }
 
-        // Die UUID muss mit einer echten UUID ersetzt werden
-        // creating random UUID & checking the value of random UUID
+        /** Die UUID muss mit einer echten UUID ersetzt werden */
         UUID uuidRandom = uuid.randomUUID();
         String newUUID = uuidRandom.toString();
 
-        System.out.println("    Random generated UUID value: " + newUUID );
+        // System.out.println("    Random generated UUID value: " + newUUID );  // DEBUG
 
         // In der Aufgabe vorgegeben
         String stringToSend =
-                "M-SEARCH * HTTP/1.1\n" +                              // Suche nach Geräten im Format HTTP/1.1
+                "M-SEARCH * HTTP/1.1\n" +                                      // Suche nach Geräten im Format HTTP/1.1
                         "S: uuid:" + newUUID + "\n" +                          // UUID des Anfragenden
                         "HOST: 239.255.255.250:1900\n" +                       // In der SSDP-Gruppe
                         "MAN: \"ssdp:discover\"\n" +                           // Anfrage-Typ: Geräte finden
                         "ST: ge:fridge\n" +                                    // Was für ein Geräte-Typ?
                         "\n";                                                  // Die leere Zeile schließt die Such-Anfrage ab
 
-        // int buffersize = List.mcsocket.getReceiveBufferSize();   // PROGRAMM BLEIBT HIER STEHEN???
-
         byte[] dataToSend = String.valueOf(stringToSend).getBytes();
         DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, ip, 1900);
 
         try {
-            System.out.println("  Sending Scan command to the ServerSocket");
+            // System.out.println("  Sending Scan command to the ServerSocket"); // DEBUG
             List.mcsocket.send( packet );
         } catch (IOException e) {
             e.printStackTrace();
@@ -93,12 +92,20 @@ public class User implements Runnable  {
         switch (befehl) {
             case "EXIT": {
                 exit = true;
+                /** Abmelden und Socket schliessen */
+                try {
+                    List.mcsocket.leaveGroup(InetAddress.getByName("239.255.255.250"));
+                    System.out.println("Socket leaving group 239.255.255.250.");
+                    List.mcsocket.close();
+                    System.out.println("Socket closed.");
+                } catch (IOException e) { /* failed */ }
+
                 System.out.println("Exiting...");
                 System.exit(0);
                 break;
             }
             case "CLEAR": {
-                // alle Geräte vergessen, threadsync
+                /** alle Geräte vergessen, threadsync */
                 synchronized( List.dgramList ) {
                     List.dgramList.clear();
                 }
@@ -110,6 +117,7 @@ public class User implements Runnable  {
                 break;
             }
             case "LIST": {
+                /** alle Geräte zeigen */
                 System.out.println("Listing Devices:");
 
                 synchronized( List.deviceList ) {
@@ -122,10 +130,11 @@ public class User implements Runnable  {
                 break;
             }
             case "SCAN":{
-                // über das MulticastSocket des Listen-Threads eine Suchanfrage senden
+
+                /** // über das MulticastSocket des Listen-Threads eine Suchanfrage senden */
                 System.out.println("Scanning for Devices...");
                 User.scanDevices();
-                System.out.println("  Scan command sent!");
+                // System.out.println("  Scan command sent!");  // DEBUG
                 break;
             }
             default: { System.out.println("Wrong Input: " + befehl); }
