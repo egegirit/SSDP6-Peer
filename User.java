@@ -52,13 +52,22 @@ public class User implements Runnable  {
                 synchronized( this.dgramList ) {
                     List.dgramList.clear();
                 }
+                synchronized( List.deviceList ) {
+                    List.deviceList.clear();
+                }
 
                 System.out.println("List Cleared.");
                 break;
             }
             case "LIST": {
                 System.out.println("Listing Devices:");
-                // ...
+
+                synchronized( List.deviceList ) {
+                    for (Device d : List.deviceList) {
+                        d.show(d);
+                    }
+                }
+
                 break;
             }
             case "SCAN":{

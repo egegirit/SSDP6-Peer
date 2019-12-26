@@ -61,10 +61,15 @@ public class Worker implements Runnable {
 
     /** die Daten des Datagramms auswerten */
     public static handlePacket( DatagramPacket pkt ){
+        // Neues Geraet initialisieren
+        public Device dvc = new Device();
 
         buffer = new byte[1024];
         buffer = pkt.getData();
         String empfangen = new String(buffer, StandardCharsets.UTF_8);
+
+        dvc.lines = empfangen;
+
         System.out.println("Received (Test 1): "+ new String(buffer));  // new String(buffer) und empfangen sollen gleich sein,
         System.out.println("Received (Test 2): "+ empfangen);  // zum Testen, delete
 
@@ -83,8 +88,10 @@ public class Worker implements Runnable {
                 if( line[i].startsWith("USN: ") ) {  // UUID
                     // Erst "USN:" trennen dann "uuid:" trennen, dann bleibt nur uuid Nummber übrig
                     uuidString = line[i].split("USN: ", 2)[1].split("uuid:", 2)[1];
+                    dvc.uuidString = uuidString;
                     try {
                         uuid = UUID.fromString(uuidString);
+                        dvc.uuid = uuid;
                     }
                     catch (Exception e) {
                         e.printStackTrace();
@@ -99,10 +106,6 @@ public class Worker implements Runnable {
 
             }
 
-            // Gefundene uuid und service typ  in die speichern
-            synchronized( List.deviceList ) {
-
-            }
 
         }
         else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){  // die erste Zeile ist der Typ des Paket
