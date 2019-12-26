@@ -2,12 +2,16 @@ package edu.udo.cs.rvs.ssdp;
 
 import java.net.*;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.net.DatagramPacket;
+import java.util.UUID;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.Reader;
+import java.nio.ByteBuffer;
+import java.io.OutputStream;
+import java.io.DataOutputStream;
 
 public class List implements Runnable {
 
@@ -61,18 +65,21 @@ public class List implements Runnable {
         System.out.println("  List Thread running");
         /* bis zum Programmende endlos Datagramme empfangen und dem Worker-Thread zur Verfügung stellen */
         /* Dies soll solange passieren, wie das DatagramSocket nicht null, gebunden und nicht geschlossen ist. */
-        while( (this.mcsocket != null) && (this.mcsocket.isBound()) && !(this.mcsocket.isClosed()) && !(User.exit) ) ){
+        while( (this.mcsocket != null) && (this.mcsocket.isBound()) && !(this.mcsocket.isClosed()) && !(User.exit) ){
 
           // Lösung in Übung 6
-          DatagramPacket buffer;
-          try {
+          DatagramPacket buffer = null;
+            try {
+                buffer = new DatagramPacket(new byte[this.mcsocket.getReceiveBufferSize()], this.mcsocket.getReceiveBufferSize());
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+            try {
 	      // Puffer erstellen, Paket empfangen und in die Liste einfügen.
-              buffer = createBuffer();
+              buffer = new DatagramPacket(new byte[this.mcsocket.getReceiveBufferSize()], this.mcsocket.getReceiveBufferSize());
+              System.out.println("  Waiting for an incoming packet.");
 	          this.mcsocket.receive(buffer);
-
-	          // Alternative:
-              // DatagramPacket dp = new DatagramPacket(new byte[this.mcsocket.getReceiveBufferSize()], this.mcsocket.getReceiveBufferSize());
-              // this.ms.receive(dp);
+              System.out.println("  Datagram Packet received.");
 
 	      // Fehlerbehandlung
 	      } catch (SocketException sexc) {

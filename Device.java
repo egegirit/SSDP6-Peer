@@ -2,9 +2,11 @@ package edu.udo.cs.rvs.ssdp;
 
 import java.net.*;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.net.DatagramPacket;
+import java.util.UUID;
 
 public class Device {
 
@@ -24,14 +26,14 @@ public class Device {
         if ( d.DeviceTyp.equals("Unicast") ) {  // ST und USN wichtig
 
             System.out.print( uuidString + " - " );
-            System.out.print( serviceType + " ");
+            System.out.print( serviceType + '\n');
 
         }
         else if ( d.DeviceTyp.equals("Multicast") ) {  // NT, USN, NTS wichtig
 
-            System.out.print( uuidString + " - " );
             // Beim Abmelden (ssdp:byebye)  ist der Dienst-Typ irrelevant
             if( d.nts.equals("ssdp:alive") ){ System.out.print( nt ); }
+            System.out.print('\n');
 
         }
         else {

@@ -1,7 +1,16 @@
 package edu.udo.cs.rvs.ssdp;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.*;
+import java.util.UUID;
+import java.io.Reader;
+import java.io.OutputStream;
 
 public class User implements Runnable  {
 
@@ -36,6 +45,46 @@ public class User implements Runnable  {
 
     }
 
+    public static void scanDevices(){
+
+        UUID uuid = null;
+        InetAddress ip = null;
+        try {
+            ip = InetAddress.getByName("239.255.255.250");
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        // Die UUID muss mit einer echten UUID ersetzt werden
+        // creating random UUID & checking the value of random UUID
+        UUID uuidRandom = uuid.randomUUID();
+        String newUUID = uuidRandom.toString();
+
+        System.out.println("    Random generated UUID value: " + newUUID );
+
+        // In der Aufgabe vorgegeben
+        String stringToSend =
+                "M-SEARCH * HTTP/1.1\n" +                              // Suche nach Geräten im Format HTTP/1.1
+                        "S: uuid:" + newUUID + "\n" +                          // UUID des Anfragenden
+                        "HOST: 239.255.255.250:1900\n" +                       // In der SSDP-Gruppe
+                        "MAN: \"ssdp:discover\"\n" +                           // Anfrage-Typ: Geräte finden
+                        "ST: ge:fridge\n" +                                    // Was für ein Geräte-Typ?
+                        "\n";                                                  // Die leere Zeile schließt die Such-Anfrage ab
+
+        // int buffersize = List.mcsocket.getReceiveBufferSize();   // PROGRAMM BLEIBT HIER STEHEN???
+
+        byte[] dataToSend = String.valueOf(stringToSend).getBytes();
+        DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, ip, 1900);
+
+        try {
+            System.out.println("  Sending Scan command to the ServerSocket");
+            List.mcsocket.send( packet );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     /** 
     Methode zum erkennen und bearbeiten der Benutzereingaben
     */
@@ -45,11 +94,12 @@ public class User implements Runnable  {
             case "EXIT": {
                 exit = true;
                 System.out.println("Exiting...");
+                System.exit(0);
                 break;
             }
             case "CLEAR": {
                 // alle Geräte vergessen, threadsync
-                synchronized( this.dgramList ) {
+                synchronized( List.dgramList ) {
                     List.dgramList.clear();
                 }
                 synchronized( List.deviceList ) {
@@ -63,6 +113,7 @@ public class User implements Runnable  {
                 System.out.println("Listing Devices:");
 
                 synchronized( List.deviceList ) {
+                    System.out.println( "Device count: " + List.deviceList.size() );
                     for (Device d : List.deviceList) {
                         d.showDevice(d);
                     }
@@ -73,43 +124,8 @@ public class User implements Runnable  {
             case "SCAN":{
                 // über das MulticastSocket des Listen-Threads eine Suchanfrage senden
                 System.out.println("Scanning for Devices...");
-
-                // int buffersize = List.mcsocket.getReceiveBufferSize();
-                // byte[] dataToSend = String.valueOf(intToSend).getBytes();
-                // DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, destAddr, port);
-                // PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
-                // printWriter.write(StringToSend);
-                // printWriter.flush();
-
-                // get the output stream from the socket.
-                OutputStream outputStream = List.mcsocket.getOutputStream();
-                // create a data output stream from the output stream so we can send data through it
-                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-
-                System.out.println("  Sending Scan command to the ServerSocket");
-
-                // Die UUID muss mit einer echten UUID ersetzt werden
-                // creating random UUID & checking the value of random UUID
-                String newUUID = uid.randomUUID();
-                System.out.println("    Random UUID value: " + newUUID);
-
-                // In der Aufgabe vorgegeben
-                String stringToSend =
-                        "M-SEARCH * HTTP/1.1\n" +                              // Suche nach Geräten im Format HTTP/1.1
-                        "S: uuid:" + newUUID + "\n"    // UUID des Anfragenden
-                        "HOST: 239.255.255.250:1900\n" +                       // In der SSDP-Gruppe
-                        "MAN: \"ssdp:discover\"\n" +                           // Anfrage-Typ: Geräte finden
-                        "ST: ge:fridge\n" +                                    // Was für ein Geräte-Typ?
-                        "\n";                                                  // Die leere Zeile schließt die Such-Anfrage ab
-
-                // write the message to send
-                dataOutputStream.writeUTF(stringToSend);
-                dataOutputStream.flush(); // send the message
-                dataOutputStream.close(); // close the output stream
-
-                // 2. Möglichkeit zu senden ist: List.mcsocket.send( paket );
-                // das wurde durch dataOutputStream.writeUTF() ersetzt
-
+                User.scanDevices();
+                System.out.println("  Scan command sent!");
                 break;
             }
             default: { System.out.println("Wrong Input: " + befehl); }

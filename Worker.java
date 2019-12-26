@@ -2,10 +2,12 @@ package edu.udo.cs.rvs.ssdp;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.DatagramPacket;
 import java.net.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 /**
  *  dieser Thread soll die empfangenen Datagramme aus dem Listen-Thread verarbeiten und dem User-Thread mitteilen, welche Geräte gerade Dienste im Netzwerk anbieten.
@@ -21,6 +23,7 @@ public class Worker implements Runnable {
     /* bis zum Programmende in Endlosschleife laufen */
     @Override
     public void run() {
+      System.out.println("  Worker Thread running.");
       while (!User.exit) { 
           
         /**
@@ -55,7 +58,7 @@ public class Worker implements Runnable {
       } // while schleife end
         
       // Austritt der while schleife nur wenn User EXIT Befehl eingibt
-      reader.close(); // Schließt automatisch auch den streamReader
+      // reader.close(); // Schließt automatisch auch den streamReader
         
     } // run end
 
@@ -63,11 +66,11 @@ public class Worker implements Runnable {
     /** die Daten des Datagramms auswerten:
      *  Es wird ein neues Geraet erstellt und je nach empfangenem Pakettyp (Unicast/Multicast) werden die Daten vom Geraet initialisiert
      */
-    public static handlePacket( DatagramPacket pkt ){
+    public static void handlePacket( DatagramPacket pkt ){
         // Neues Geraet initialisieren
-        public Device dvc = new Device();
+        Device dvc = new Device();
 
-        buffer = new byte[1024];
+        byte[] buffer = new byte[1024];
         buffer = pkt.getData();
         String empfangen = new String(buffer, StandardCharsets.UTF_8);
 
@@ -82,7 +85,7 @@ public class Worker implements Runnable {
             System.out.println("Unicast packet identified.");
             dvc.DeviceTyp = "Unicast";
             UUID uuid = null;
-            String uuidString = null
+            String uuidString = null;
             String st = null;
 
             // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (ST und USN sind wichtig bei Unicast)
@@ -109,13 +112,14 @@ public class Worker implements Runnable {
                 }
 
             }
+            List.deviceList.add(dvc);
 
         }
         else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){  // die erste Zeile ist der Typ des Paket
             System.out.println("Multicast packet identified.");
             dvc.DeviceTyp = "Multicast";
             UUID uuid = null;
-            String uuidString = null
+            String uuidString = null;
             String nt = null;
             String nts = null;
 
@@ -148,6 +152,7 @@ public class Worker implements Runnable {
                 }
 
             }
+            List.deviceList.add(dvc);
         }
         else {  // Kein bekannter Pakettyp erkannt, pakettyp anzeigen
             System.out.println( "Packet type unknown: " + line[0] );
