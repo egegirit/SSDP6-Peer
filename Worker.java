@@ -73,14 +73,34 @@ public class Worker implements Runnable {
         if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {  // die erste Zeile ist der Typ des Pakets
             System.out.println("Unicast packet identified.");
 
+            UUID uuid = null;
+            String uuidString = null
+            String st = null;
+
             // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (ST und USN sind wichtig bei Unicast)
-            for( int i = 1; i< line.length; i++){
-                if( line[i].startsWith("ST: ") ){
-                    // "example string".split(":", 2)
-                }
-                else if( line[i].startsWith("USN: ") ) {
+            for( int i = 1; i< line.length; i++ ){
+
+                if( line[i].startsWith("USN: ") ) {  // UUID
+                    // Erst "USN:" trennen dann "uuid:" trennen, dann bleibt nur uuid Nummber übrig
+                    uuidString = line[i].split("USN: ", 2)[1].split("uuid:", 2)[1];
+                    try {
+                        uuid = UUID.fromString(uuidString);
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
                 }
+                else if( line[i].startsWith("ST: ") ){  // Service Typ
+
+                    st = line[i].split("ST: ", 2)[1];
+
+                }
+
+            }
+
+            // Gefundene uuid und service typ  in die speichern
+            synchronized( List.deviceList ) {
 
             }
 
@@ -93,7 +113,7 @@ public class Worker implements Runnable {
                 if( line[i].startsWith("NT: ") ){
                     // "example string".split(":", 2)
                 }
-                else if( line[i].startsWith("USN: ") ) {
+                else if( line[i].startsWith("USN: ") ) {  // UUID
 
                 }
                 else if( line[i].startsWith("NTS: ") ) {

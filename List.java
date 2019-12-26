@@ -12,7 +12,7 @@ public class List implements Runnable {
      * Liste als LinkedList. Die empfangenen Pakete landen hier
      */
     public static LinkedList<DatagramPacket> dgramList = new LinkedList<>();
-    // public static LinkedList< ?? > deviceList = new LinkedList<>();   // Liste um die Informationen von den Geraeten zu speichern/zeigen (Enthaelt eine UUID und ein oder mehr Dienst-Typen)
+    public static LinkedList< Device > deviceList = new LinkedList<>();   // Liste um die Informationen von den Geraeten zu speichern/zeigen (Enthaelt eine UUID und ein oder mehr Dienst-Typen)
     public static MulticastSocket mcsocket;                              // public static -> socket ist sichtbar zu anderen Klassen
     InetAddress ip;
 
