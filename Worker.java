@@ -136,7 +136,11 @@ public class Worker implements Runnable {
                     }
                 }
             }
-            if(!sameDevice){ List.deviceList.add(dvc); }
+            if(!sameDevice){
+                synchronized( List.deviceList ) {
+                    List.deviceList.add(dvc);
+                }
+            }
 
         }
         /** Überprüfen ob es ein Multicastpaket ist */
@@ -181,7 +185,9 @@ public class Worker implements Runnable {
                 for (Device d : List.deviceList) {
                     if( d.uuidString.equalsIgnoreCase(uuidString) ){
                         if( d.nts.contains("ssdp:byebye") ){
-                            List.deviceList.remove(d);
+                            synchronized( List.deviceList ) {
+                                List.deviceList.remove(d);
+                            }
                             System.out.println("  Logged off device removed");  // DEBUG
                         }
                     }
@@ -203,7 +209,13 @@ public class Worker implements Runnable {
                         }
                     }
                 }
-                if(!sameDevice){ List.deviceList.add(dvc); }
+                if(!sameDevice){
+
+                    synchronized( List.deviceList ) {
+                        List.deviceList.add(dvc);
+                    }
+
+                }
 
             }
 
