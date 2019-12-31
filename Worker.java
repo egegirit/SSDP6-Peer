@@ -76,7 +76,7 @@ public class Worker implements Runnable {
 
         dvc.lines = empfangen;
 
-        // System.out.println("Received: "+ empfangen);  // DEBUG
+        System.out.println("Received: "+ empfangen);  // DEBUG
 
         /** Empfangene string in Zeilen zerlegen */
         String[] line = empfangen.split("\\r?\\n");
@@ -86,6 +86,7 @@ public class Worker implements Runnable {
         String nt = null;
         String nts = null;
         String st = null;
+        boolean abmelden = false;
 
         /** sameDevice wird true, falls mehrere pakete dieselbe UUID haben. Damit werden neue Servicetypen zu ihren zugehörigen UUID hinzugefügt */
         boolean sameDevice = false;
@@ -165,28 +166,46 @@ public class Worker implements Runnable {
                     }
 
                 }
-                else if( line[i].startsWith("NTS: ") ) {
+                else if( line[i].startsWith("NTS: ") ) {  // falls ssdp:byebye dann abmelden und aus der liste löschen
 
                     nts = line[i].split("NTS: ", 2)[1];
                     dvc.nts = nts;
+                    if( nts.equalsIgnoreCase("ssdp:byebye") ){ abmelden = true; }
+
                 }
 
             }
 
-            // check if there is already a device with the same uuid and add the new unique service types
-            for (Device d : List.deviceList) {
-                if( d.uuidString.equalsIgnoreCase(uuidString) ){
-                    // System.out.println("  SAME UUID IDENTIFIED");
-                    sameDevice = true;
-                    if( d.nt.contains(nt) ){
-                        // System.out.println("  SAME SERVICE IDENTIFIED");
-                    }
-                    else{
-                        d.serviceType.add(nt);
+            if( abmelden ){  // Geraet aus der liste löschen
+                System.out.println("  Device logged off");  // DEBUG
+                for (Device d : List.deviceList) {
+                    if( d.uuidString.equalsIgnoreCase(uuidString) ){
+                        if( d.nts.contains("ssdp:byebye") ){
+                            List.deviceList.remove(d);
+                            System.out.println("  Logged off device removed");  // DEBUG
+                        }
                     }
                 }
+
             }
-            if(!sameDevice){ List.deviceList.add(dvc); }
+            else {  // kein ssdp:byebye, Geraet hinzufuegen/Servicetyp anpassen
+
+                // check if there is already a device with the same uuid and add the new unique service types
+                for (Device d : List.deviceList) {
+                    if( d.uuidString.equalsIgnoreCase(uuidString) ){
+                        // System.out.println("  SAME UUID IDENTIFIED");
+                        sameDevice = true;
+                        if( d.nt.contains(nt) ){
+                            // System.out.println("  SAME SERVICE IDENTIFIED");
+                        }
+                        else{
+                            d.serviceType.add(nt);
+                        }
+                    }
+                }
+                if(!sameDevice){ List.deviceList.add(dvc); }
+
+            }
 
         }
         else {

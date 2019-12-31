@@ -134,7 +134,7 @@ public class User implements Runnable  {
                 /** // über das MulticastSocket des Listen-Threads eine Suchanfrage senden */
                 System.out.println("Scanning for Devices...");
                 User.scanDevices();
-                // System.out.println("  Scan command sent!");  // DEBUG
+                System.out.println("  Scan command sent!");  // DEBUG
                 break;
             }
             default: { System.out.println("Wrong Input: " + befehl); }

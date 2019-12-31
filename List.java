@@ -71,9 +71,9 @@ public class List implements Runnable {
             try {
 	      // Puffer erstellen, Paket empfangen und in die Liste einfügen.
               buffer = new DatagramPacket(new byte[this.mcsocket.getReceiveBufferSize()], this.mcsocket.getReceiveBufferSize());
-              // System.out.println("  Waiting for an incoming packet.");  // DEBUG
+              System.out.println("  Waiting for an incoming packet.");  // DEBUG
 	          this.mcsocket.receive(buffer);
-              // System.out.println("  Datagram Packet received.");  // DEBUG
+              System.out.println("  Datagram Packet received.");  // DEBUG
 
 	      // Fehlerbehandlung
 	      } catch (SocketException sexc) {
@@ -86,7 +86,7 @@ public class List implements Runnable {
           synchronized( this.dgramList ) {
              this.dgramList.add( buffer );
           }                    
-          // System.out.println("  Datagram Packet added to list.");  // DEBUG
+          System.out.println("  Datagram Packet added to list.");  // DEBUG
 
             /** Socket wird in User Klasse automatisch geschlossen, wenn User "exit" eingibt */
 

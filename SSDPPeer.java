@@ -21,30 +21,30 @@ public class SSDPPeer implements Runnable
   
     // List Object erstellen, Thread inizialisieren
     listObject = new List();
-    System.out.println("List Object created.");
+    // System.out.println("List Object created.");
     listThread = new Thread(listObject);  // sichtbar zu Worker Thread
     listThread.setName("List Thread");
-    System.out.println("List Thread initialized.");
+    // System.out.println("List Thread initialized.");
     
     // User Object erstellen, Thread inizialisieren
     userObject = new User();
-    System.out.println("User Object created.");
+    // System.out.println("User Object created.");
     userThread = new Thread(userObject);  // sichtbar zu Worker Thread
     userThread.setName("User Thread");
-    System.out.println("User Object initialized.");
+    // System.out.println("User Object initialized.");
     
     // Worker Object erstellen, Thread inizialisieren
     workerObject = new Worker();
-    System.out.println("Worker Object created.");
+    // System.out.println("Worker Object created.");
     workerThread = new Thread(workerObject);
     workerThread.setName("Worker Thread");
-    System.out.println("Worker Thread initialized.");    
+    // System.out.println("Worker Thread initialized.");
     
   }
 
   @Override
   public void run() {
-    System.out.println("SSDPPeer Thread running.");
+    // System.out.println("SSDPPeer Thread running.");
     // Threads starten
     listThread.start();
     userThread.start();
