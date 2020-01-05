@@ -28,7 +28,7 @@ public class List implements Runnable {
         /* ein MulticastSocket auf Port 1900 öffnen, .. */
         try {
             this.mcsocket = new MulticastSocket(1990);
-            // System.out.println("  Multicast Socked Opened at Port 1900.");  // DEBUG
+            System.out.println("  Multicast Socked Opened at Port 1900.");  // DEBUG
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -36,13 +36,13 @@ public class List implements Runnable {
         // Multicast-Gruppe „239.255.255.250“ beitreten
         try {
             ip = InetAddress.getByName("239.255.255.250");
-            // System.out.println("  InetAdress 239.255.255.250 initialized.");  // DEBUG
+            System.out.println("  InetAdress 239.255.255.250 initialized.");  // DEBUG
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
         try {
             this.mcsocket.joinGroup(ip);
-            //  System.out.println("  Joined Multicast group: 239.255.255.250.");  // DEBUG
+            System.out.println("  Joined Multicast group: 239.255.255.250.");  // DEBUG
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -55,7 +55,7 @@ public class List implements Runnable {
         /** Der Listen-Thread, um  bis zum Programmende endlos Datagramme zu empfangen und dem Worker-Thread zur Verfügung stellen
          * Dies soll solange passieren, wie das DatagramSocket nicht null, gebunden , nicht geschlossen ist und der Benutzer nicht EXIT getippt hat */
 
-        // System.out.println("  List Thread running");  // DEBUG
+        System.out.println("  List Thread running");  // DEBUG
 
         while( (this.mcsocket != null) && (this.mcsocket.isBound()) && !(this.mcsocket.isClosed()) && !(User.exit) ){
 

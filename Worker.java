@@ -20,7 +20,7 @@ public class Worker implements Runnable {
 
     @Override
     public void run() {
-      // System.out.println("  Worker Thread running.");  // DEBUG
+      System.out.println("  Worker Thread running.");  // DEBUG
       while (!User.exit) { 
           
         /**
@@ -39,8 +39,11 @@ public class Worker implements Runnable {
                 pkt = List.dgramList.poll();  // poll retrieves and removes the head (first element) of the list.
             }
 
+            System.out.println("    Head of the Datagram list removed.");  // DEBUG
+
+            System.out.println("    Head of the Datagram sent to handle."); // DEBUG
             /** die Daten des Datagramms auswerten */
-            handlePacket( pkt );
+            this.handlePacket( pkt );
 
         } // 1. If end
 
@@ -64,26 +67,31 @@ public class Worker implements Runnable {
      *  Es wird ein neues Geraet erstellt und je nach empfangenem Pakettyp (Unicast/Multicast) werden die Daten vom Geraet initialisiert
      */
     public static void handlePacket( DatagramPacket pkt ){
+        System.out.println("      Handling packet."); // DEBUG
         // Neues Geraet initialisieren
         Device dvc = new Device();
 
+        System.out.println("      Creating String for content."); // DEBUG
+
         /** Den Inhalt vom Paket in String konvertieren, danach die String zeile für zeile verarbeiten */
-        byte[] buffer = new byte[ List.mcsocket.getReceiveBufferSize() ]; // size was 1024
+        byte[] buffer = new byte[1024];  // programm bleibt wenn getreveicesocketsize() benutzt wird
         buffer = pkt.getData();
         String empfangen = new String(buffer, StandardCharsets.UTF_8);
 
+        System.out.println("      Content String created."); // DEBUG
+
         dvc.lines = empfangen;
 
-        System.out.println("Received: "+ empfangen);  // DEBUG
+        System.out.println("Content of the processing packet: "+ empfangen);  // DEBUG
 
         /** Empfangene string in Zeilen zerlegen */
         String[] line = empfangen.split("\\r?\\n");
 
         UUID uuid = null;
         String uuidString = null;
-        String nt = null;
+        String serviceType = null;
         String nts = null;
-        String st = null;
+
         boolean abmelden = false;
 
         /** sameDevice wird true, falls mehrere pakete dieselbe UUID haben. Damit werden neue Servicetypen zu ihren zugehörigen UUID hinzugefügt */
@@ -92,11 +100,13 @@ public class Worker implements Runnable {
         /**  die erste Zeile ist der Typ des Pakets */
         /**  Erstens überprüfen, ob wir einen Unicast Pakettyp haben  */
         if ( line[0].equalsIgnoreCase("HTTP/1.1 200 OK") ) {
-            // System.out.println("Unicast packet identified.");  // DEBUG
-            dvc.DeviceTyp = "Unicast";
+            System.out.println("Unicast packet identified.");  // DEBUG
+            dvc.PacketTyp = "Unicast";
 
             /**  Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (ST und USN sind wichtig bei Unicast) */
             for( int i = 1; i < line.length; i++ ){
+
+                System.out.println("Now processing: " + line[i] ); // DEBUG
 
                 if( line[i].startsWith("USN: ") ) {  // UUID
 
@@ -110,12 +120,13 @@ public class Worker implements Runnable {
                     catch (Exception e) {
                         e.printStackTrace();
                     }
-
+                    System.out.println(" USN added to device");  // DEBUG
                 }
                 else if( line[i].startsWith("ST: ") ){  // Service Typ
 
-                    st = line[i].split("ST: ", 2)[1];
-                    dvc.serviceType.add(st);
+                    serviceType = line[i].split("ST: ", 2)[1];
+                    dvc.serviceTypes.add(serviceType);
+                    System.out.println(" ST added to device");  // DEBUG
 
                 }
 
@@ -124,35 +135,38 @@ public class Worker implements Runnable {
             /** check if there is already a device with the same uuid , if there is, add the new unique service types to it */
             for (Device d : List.deviceList) {
                 if( d.uuidString.equalsIgnoreCase(uuidString) ){
-                    // System.out.println("  SAME UUID IDENTIFIED"); // DEBUG
+                    System.out.println("  SAME UUID IDENTIFIED"); // DEBUG
                     sameDevice = true;
-                    if( d.serviceType.contains(st) ){
-                        // System.out.println("  SAME SERVICE IDENTIFIED"); // DEBUG
+                    if( d.serviceTypes.contains(serviceType) ){
+                        System.out.println("  SAME SERVICE IDENTIFIED"); // DEBUG
                     }
                     else{
-                        d.serviceType.add(st);
+                        d.serviceTypes.add(serviceType);
+                        System.out.println(" Service Type added to device"); // DEBUG
                     }
                 }
             }
             if(!sameDevice){
                 synchronized( List.deviceList ) {
                     List.deviceList.add(dvc);
+                    System.out.println(" Unique Device added to list");  // DEBUG
                 }
             }
 
         }
         /** Überprüfen ob es ein Multicastpaket ist */
         else if( line[0].equalsIgnoreCase("NOTIFY * HTTP/1.1") ){  // die erste Zeile ist der Typ des Paket
-            // System.out.println("Multicast packet identified.");  // DEBUG
-            dvc.DeviceTyp = "Multicast";
+            System.out.println("Multicast packet identified.");  // DEBUG
+            dvc.PacketTyp = "Multicast";
 
             // Alle Zeilen des Pakets durchgehen, die nötigen Informationen speichern (NT, USN und NTS sind wichtig bei Multicast)
             for( int i = 1; i < line.length; i++ ){
+                System.out.println("Now processing: " + line[i] ); // DEBUG
                 if( line[i].startsWith("NT: ") ){  // Service-Type
 
-                    nt = line[i].split("NT: ", 2)[1];
-                    dvc.nt.add(nt);
-
+                    serviceType = line[i].split("NT: ", 2)[1];
+                    dvc.serviceTypes.add(serviceType);
+                    System.out.println(" Service Type added to device"); // DEBUG
                 }
                 else if( line[i].startsWith("USN: ") ) {  // UUID
 
@@ -166,19 +180,21 @@ public class Worker implements Runnable {
                     catch (Exception e) {
                         e.printStackTrace();
                     }
-
+                    System.out.println(" USN added to device"); // DEBUG
                 }
                 else if( line[i].startsWith("NTS: ") ) {  // falls ssdp:byebye dann abmelden und aus der liste löschen
 
                     nts = line[i].split("NTS: ", 2)[1];
                     dvc.nts = nts;
                     if( nts.equalsIgnoreCase("ssdp:byebye") ){ abmelden = true; }
+                    System.out.println(" NTS added to device"); // DEBUG
 
                 }
 
             }
 
-            if( abmelden ){  // Geraet aus der liste löschen
+            if( abmelden ){  /** Geraet meldet sich ab, aus der liste löschen */
+                System.out.println(" Bye Bye Detected");    // DEBUG
                 System.out.println("  Device logged off");  // DEBUG
                 for (Device d : List.deviceList) {
                     if( d.uuidString.equalsIgnoreCase(uuidString) ){
@@ -192,18 +208,19 @@ public class Worker implements Runnable {
                 }
 
             }
-            else {  // kein ssdp:byebye, Geraet hinzufuegen/Servicetyp anpassen
+            else {  /** kein ssdp:byebye, Geraet hinzufuegen/Servicetyp anpassen */
 
                 // check if there is already a device with the same uuid and add the new unique service types
                 for (Device d : List.deviceList) {
                     if( d.uuidString.equalsIgnoreCase(uuidString) ){
-                        // System.out.println("  SAME UUID IDENTIFIED");
+                        System.out.println("  SAME UUID IDENTIFIED");
                         sameDevice = true;
-                        if( d.nt.contains(nt) ){
-                            // System.out.println("  SAME SERVICE IDENTIFIED");
+                        if( d.serviceTypes.contains(serviceType) ){
+                            System.out.println("  SAME SERVICE IDENTIFIED");
                         }
                         else{
-                            d.serviceType.add(nt);
+                            d.serviceTypes.add(serviceType);
+                            System.out.println("  Service Type added to device");  // DEBUG
                         }
                     }
                 }
@@ -211,6 +228,7 @@ public class Worker implements Runnable {
 
                     synchronized( List.deviceList ) {
                         List.deviceList.add(dvc);
+                        System.out.println("  Device added to list");  // DEBUG
                     }
 
                 }
@@ -220,8 +238,7 @@ public class Worker implements Runnable {
         }
         else {
             /** Kein bekannter Pakettyp erkannt, pakettyp anzeigen */
-            // System.out.println( "Packet type unknown: " + line[0] );  // DEBUG
-            dvc.DeviceTyp = "Unknown: " + line[0];
+            System.out.println( "Packet type unknown: " + line[0] );  // DEBUG
         }
 
     }

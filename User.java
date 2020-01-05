@@ -56,7 +56,7 @@ public class User implements Runnable  {
         UUID uuidRandom = uuid.randomUUID();
         String newUUID = uuidRandom.toString();
 
-        // System.out.println("    Random generated UUID value: " + newUUID );  // DEBUG
+        System.out.println("    Random generated UUID value: " + newUUID );  // DEBUG
 
         /** Die zu sendende Nachricht (In der Aufgabe vorgegeben)  */
         String stringToSend =
@@ -72,7 +72,7 @@ public class User implements Runnable  {
         DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, ip, 1900);
 
         try {
-            // System.out.println("  Sending Scan command to the ServerSocket"); // DEBUG
+            System.out.println("  Sending Scan command to the ServerSocket"); // DEBUG
             List.mcsocket.send( packet );
         } catch (IOException e) {
             e.printStackTrace();
@@ -89,9 +89,9 @@ public class User implements Runnable  {
                 /** Input: "EXIT" -> Abmelden und Socket schliessen */
                 try {
                     List.mcsocket.leaveGroup(InetAddress.getByName("239.255.255.250"));
-                    // System.out.println("Socket leaving group 239.255.255.250.");  // DEBUG
+                    System.out.println("Socket leaving group 239.255.255.250.");  // DEBUG
                     List.mcsocket.close();
-                    // System.out.println("Socket closed.");  // DEBUG
+                    System.out.println("Socket closed.");  // DEBUG
                 } catch (IOException e) { e.printStackTrace(); }
 
                 System.out.println("Exiting...");
@@ -128,7 +128,7 @@ public class User implements Runnable  {
                 /** Input: "SCAN" -> über das MulticastSocket des Listen-Threads eine Suchanfrage senden */
                 System.out.println("Scanning for Devices...");
                 User.scanDevices();
-                // System.out.println("  Scan command sent!");  // DEBUG
+                System.out.println("  Scan command sent!");  // DEBUG
                 break;
             }
             default: { System.out.println("Wrong Input: " + befehl); }
