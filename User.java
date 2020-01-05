@@ -6,7 +6,6 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Scanner;
 import java.util.*;
 import java.util.UUID;
 import java.io.Reader;
@@ -14,26 +13,24 @@ import java.io.OutputStream;
 
 public class User implements Runnable  {
 
-    public static boolean exit = false;  // Falls benutzereingabe EXIT, dann auf true setzen, damit while schleifen in threads beenden
+    public static boolean exit = false;  /** Falls benutzereingabe EXIT, dann auf true setzen, damit while schleifen in threads beenden */
 
-    /**
-     *  die Nutzereingaben lesen, verarbeiten und entsprechende Aktionen durchführen.
-     */
-
+    /**  die Nutzereingaben lesen, verarbeiten und entsprechende Aktionen durchführen.  */
     Scanner sc = new Scanner(System.in);  // Eingabe
     String input;
 
     @Override
     public void run() {
         System.out.println("  User Thread running.");
-        // bis zum Programmende in einer Endlosschleife laufen
+        /**  bis zum Programmende in einer Endlosschleife laufen  */
         while( !exit ){
 
             if( sc.hasNextLine() ){
                 input = sc.nextLine();
+                /**  Befehl verarbeiten */
                 this.handleInput( input );                
             }
-            // Kein Befehl, schlafen
+            /**  Kein Befehl, schlafen  */
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
@@ -44,9 +41,7 @@ public class User implements Runnable  {
 
     }
 
-    /**
-     *  Eine Suchanfrage nach Geraeten senden.
-     */
+    /** Eine Suchanfrage nach Geraeten senden.  */
     public static void scanDevices(){
 
         UUID uuid = null;
@@ -63,7 +58,7 @@ public class User implements Runnable  {
 
         // System.out.println("    Random generated UUID value: " + newUUID );  // DEBUG
 
-        // In der Aufgabe vorgegeben
+        /** Die zu sendende Nachricht (In der Aufgabe vorgegeben)  */
         String stringToSend =
                 "M-SEARCH * HTTP/1.1\n" +                                      // Suche nach Geräten im Format HTTP/1.1
                         "S: uuid:" + newUUID + "\n" +                          // UUID des Anfragenden
@@ -72,6 +67,7 @@ public class User implements Runnable  {
                         "ST: ge:fridge\n" +                                    // Was für ein Geräte-Typ?
                         "\n";                                                  // Die leere Zeile schließt die Such-Anfrage ab
 
+        /** String Nachricht in byte array konvertieren, damit sie in ein Datagrampacket gepackt werden kann */
         byte[] dataToSend = String.valueOf(stringToSend).getBytes();
         DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, ip, 1900);
 
@@ -84,29 +80,27 @@ public class User implements Runnable  {
 
     }
 
-    /** 
-    Methode zum erkennen und bearbeiten der Benutzereingaben
-    */
+    /**     Methode zum erkennen und bearbeiten der Benutzereingaben    */
     public static void handleInput(String befehl){
 
         switch (befehl) {
             case "EXIT": {
                 exit = true;
-                /** Abmelden und Socket schliessen */
+                /** Input: "EXIT" -> Abmelden und Socket schliessen */
                 try {
                     List.mcsocket.leaveGroup(InetAddress.getByName("239.255.255.250"));
-                    System.out.println("Socket leaving group 239.255.255.250.");
+                    // System.out.println("Socket leaving group 239.255.255.250.");  // DEBUG
                     List.mcsocket.close();
-                    System.out.println("Socket closed.");
-                } catch (IOException e) { /* failed */ }
+                    // System.out.println("Socket closed.");  // DEBUG
+                } catch (IOException e) { e.printStackTrace(); }
 
                 System.out.println("Exiting...");
                 System.exit(0);
                 break;
             }
             case "CLEAR": {
-                /** alle Geräte vergessen, threadsync */
-                synchronized( List.dgramList ) {
+                /** Input: "CLEAR" -> alle Geräte vergessen, threadsync */
+                synchronized( List.dgramList ) {  // Müssen auch die Pakete gelöscht werden? wenn nein entfene dies
                     List.dgramList.clear();
                 }
                 synchronized( List.deviceList ) {
@@ -117,7 +111,7 @@ public class User implements Runnable  {
                 break;
             }
             case "LIST": {
-                /** alle Geräte zeigen */
+                /** Input: "LIST" -> alle Geräteinformationen zeigen */
                 System.out.println("Listing Devices:");
 
                 synchronized( List.deviceList ) {
@@ -131,10 +125,10 @@ public class User implements Runnable  {
             }
             case "SCAN":{
 
-                /** // über das MulticastSocket des Listen-Threads eine Suchanfrage senden */
+                /** Input: "SCAN" -> über das MulticastSocket des Listen-Threads eine Suchanfrage senden */
                 System.out.println("Scanning for Devices...");
                 User.scanDevices();
-                System.out.println("  Scan command sent!");  // DEBUG
+                // System.out.println("  Scan command sent!");  // DEBUG
                 break;
             }
             default: { System.out.println("Wrong Input: " + befehl); }

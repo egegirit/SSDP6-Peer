@@ -15,17 +15,15 @@ import java.io.DataOutputStream;
 
 public class List implements Runnable {
 
-    /** Die empfangenen Pakete werden hier gespeichert, dann wird immer das aelteste bearbeitet  */
+    /** Die empfangenen Pakete werden hier gespeichert, dann wird immer das aelteste bearbeitet und gelöscht  */
     public static LinkedList<DatagramPacket> dgramList = new LinkedList<>();
-    /** Liste um die Informationen von den Geraeten zu speichern/zeigen (Ein Geraet enthaelt eine UUID und ein oder mehr Dienst-Typen)  */
+    /** Liste von Geraeten um die Informationen von den Geraeten zu speichern/zeigen (Ein Geraet enthaelt eine UUID und ein oder mehrere Dienst-Typen)  */
     public static LinkedList< Device > deviceList = new LinkedList<>();
     public static MulticastSocket mcsocket;                              // public static -> socket ist sichtbar zu anderen Klassen
     InetAddress ip;
 
-    /** Konstruktor öffnet ein MulticastSocket auf Port 1900, und tritt Multicast-Gruppe „239.255.255.250“ bei  */
+    /** Konstruktor öffnet ein MulticastSocket auf Port 1900, und tritt Multicast-Gruppe „239.255.255.250“ bei . Kann man auch am Anfang der run Methode schreiben */
     public List(){
-
-        // Folgende Codes können auch am Anfang der run methode geschrieben werden
 
         /* ein MulticastSocket auf Port 1900 öffnen, .. */
         try {
@@ -36,7 +34,6 @@ public class List implements Runnable {
         }
 
         // Multicast-Gruppe „239.255.255.250“ beitreten
-
         try {
             ip = InetAddress.getByName("239.255.255.250");
             // System.out.println("  InetAdress 239.255.255.250 initialized.");  // DEBUG
@@ -51,17 +48,18 @@ public class List implements Runnable {
         }
     }
 
-    /**
-     *  Der Listen-Thread, um Datagramm zu empfangen
-     */
+    /** */
     @Override
     public void run() {
+
+        /** Der Listen-Thread, um  bis zum Programmende endlos Datagramme zu empfangen und dem Worker-Thread zur Verfügung stellen
+         * Dies soll solange passieren, wie das DatagramSocket nicht null, gebunden , nicht geschlossen ist und der Benutzer nicht EXIT getippt hat */
+
         // System.out.println("  List Thread running");  // DEBUG
-        /* bis zum Programmende endlos Datagramme empfangen und dem Worker-Thread zur Verfügung stellen */
-        /* Dies soll solange passieren, wie das DatagramSocket nicht null, gebunden und nicht geschlossen ist. */
+
         while( (this.mcsocket != null) && (this.mcsocket.isBound()) && !(this.mcsocket.isClosed()) && !(User.exit) ){
 
-          // Lösung in Übung 6
+          /** Buffer für einen neu kommenden Paket erstellen, als grösse die buffergrösse vom Socket benutzen */
           DatagramPacket buffer = null;
             try {
                 buffer = new DatagramPacket(new byte[this.mcsocket.getReceiveBufferSize()], this.mcsocket.getReceiveBufferSize());
@@ -69,24 +67,23 @@ public class List implements Runnable {
                 e.printStackTrace();
             }
             try {
-	      // Puffer erstellen, Paket empfangen und in die Liste einfügen.
-              buffer = new DatagramPacket(new byte[this.mcsocket.getReceiveBufferSize()], this.mcsocket.getReceiveBufferSize());
+              /** auf ein Paket warten und empfangen  */
               System.out.println("  Waiting for an incoming packet.");  // DEBUG
 	          this.mcsocket.receive(buffer);
               System.out.println("  Datagram Packet received.");  // DEBUG
 
-	      // Fehlerbehandlung
-	      } catch (SocketException sexc) {
-	          sexc.printStackTrace();
-	      } catch (IOException ioexc) {
-	         ioexc.printStackTrace();
-	      }
+	          // Fehlerbehandlung
+            } catch (SocketException sexc) {
+	            sexc.printStackTrace();
+	        } catch (IOException ioexc) {
+	            ioexc.printStackTrace();
+	        }
 
-          // Empfangene paket in die Liste einfügen, Threadsyncronisation
-          synchronized( this.dgramList ) {
-             this.dgramList.add( buffer );
-          }                    
-          System.out.println("  Datagram Packet added to list.");  // DEBUG
+            /** Empfangene paket in die Liste einfügen, Threadsyncronisation  */
+            synchronized( this.dgramList ) {
+               this.dgramList.add( buffer );
+            }
+            System.out.println("  Datagram Packet added to list.");  // DEBUG
 
             /** Socket wird in User Klasse automatisch geschlossen, wenn User "exit" eingibt */
 
