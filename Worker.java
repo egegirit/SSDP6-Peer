@@ -16,11 +16,8 @@ import java.util.UUID;
 
 public class Worker implements Runnable {
     
-    /**
-     *  Der Worker-Thread, um die Empfangenen Datagramme zu verarbeiten
-     */
-  
-    /* bis zum Programmende in Endlosschleife laufen */
+    /** Der Worker-Thread, um die Empfangenen Datagramme zu verarbeiten (bis zum Programmende in Endlosschleife laufen)  */
+
     @Override
     public void run() {
       // System.out.println("  Worker Thread running.");  // DEBUG
@@ -28,7 +25,7 @@ public class Worker implements Runnable {
           
         /**
          *  Als erstes muss geprüft werden, ob überhaupt Datagramme zu abarbeiten vorliegen.
-         *  Wenn keine Datagramme vorliegen sollte der Thread einige Millisekunden schlafen um den Prozessor nicht mit unnötig vielen Prüfungen zu überlasten
+         *  Wenn keine Datagramme vorliegen, sollte der Thread einige Millisekunden schlafen
          */
         if( !(List.dgramList.isEmpty()) && !(List.dgramList == null) ){
 
@@ -39,7 +36,7 @@ public class Worker implements Runnable {
             
             DatagramPacket pkt;
             synchronized(List.dgramList) {
-                pkt = List.dgramList.poll();  // poll retrieves and removes the head (first element) of this list.
+                pkt = List.dgramList.poll();  // poll retrieves and removes the head (first element) of the list.
             }
 
             /** die Daten des Datagramms auswerten */
@@ -47,7 +44,7 @@ public class Worker implements Runnable {
 
         } // 1. If end
 
-        /** die Daten des Datagramms auswerten */
+        /** Wenn Liste leer, 10 ms schlafen */
         else{
             try {
               Thread.sleep(10);
@@ -63,14 +60,15 @@ public class Worker implements Runnable {
     } // run end
 
 
-    /** die Daten des Datagramms auswerten:
+    /** Methode, die die Daten des Datagramms auswertet:
      *  Es wird ein neues Geraet erstellt und je nach empfangenem Pakettyp (Unicast/Multicast) werden die Daten vom Geraet initialisiert
      */
     public static void handlePacket( DatagramPacket pkt ){
         // Neues Geraet initialisieren
         Device dvc = new Device();
 
-        byte[] buffer = new byte[1024];
+        /** Den Inhalt vom Paket in String konvertieren, danach die String zeile für zeile verarbeiten */
+        byte[] buffer = new byte[ List.mcsocket.getReceiveBufferSize() ]; // size was 1024
         buffer = pkt.getData();
         String empfangen = new String(buffer, StandardCharsets.UTF_8);
 
