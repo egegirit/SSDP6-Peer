@@ -11,8 +11,9 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 /**
- *  dieser Thread soll die empfangenen Datagramme aus dem Listen-Thread verarbeiten und dem User-Thread mitteilen, welche Geräte gerade Dienste im Netzwerk anbieten.
- *  Hierfür muss der Thread sowohl das Objekt des User-Threads als auch das Objekt des Listen-Threads kennen.
+ *  der Thread von Worker Klasse verarbeitet die empfangenen Datagramme aus dem Listen-Thread, und verwaltet(hinzufügen/löschen) die erkannten Geräte in einer Liste.
+ *  Mit der Gerätliste kann man sehen, welche Geräte gerade Dienste im Netzwerk anbieten.
+ *
  */
 
 public class Worker implements Runnable {
@@ -25,13 +26,13 @@ public class Worker implements Runnable {
       while (!User.exit) { 
           
         /**
-         *  Als erstes muss geprüft werden, ob überhaupt Datagramme zu abarbeiten vorliegen.
-         *  Wenn keine Datagramme vorliegen, sollte der Thread einige Millisekunden schlafen
+         *  Als erstes prüfen, ob überhaupt Datagramme zu abarbeiten vorliegen.
+         *  Wenn keine Datagramme vorliegen, schlaeft der Thread 10 Millisekunden
          */
         if( !(List.dgramList.isEmpty()) && !(List.dgramList == null) ){
 
             /**
-             * Wenn nun Datagramme vorliegen, immer das älteste nehmen und
+             * Wenn mindestens 1 Datagramm vorliegt, immer das älteste nehmen und
              * aus der Liste entfernen. Danach die Daten des Datagramms auswerten.
              */
             
@@ -42,7 +43,7 @@ public class Worker implements Runnable {
 
             System.out.println("    Head of the Datagram list removed.");  // DEBUG
 
-            System.out.println("    Head of the Datagram sent to handle."); // DEBUG
+            System.out.println("    Removed datagram sent to handle."); // DEBUG
             /** die Daten des Datagramms auswerten */
             this.handlePacket( pkt );
 
@@ -64,8 +65,10 @@ public class Worker implements Runnable {
     } // run end
 
 
-    /** Methode, die die Daten des Datagramms auswertet:
-     *  Es wird ein neues Geraet erstellt und je nach empfangenem Pakettyp (Unicast/Multicast) werden die Daten vom Geraet initialisiert
+    /** Methode, die die Daten eines Datagramms auswertet:
+     *  Es wird ein neues Geraet erstellt und je nach empfangenem Pakettyp (Unicast/Multicast) werden die Daten vom Geraet initialisiert.
+     *  Von einem Paket werden diese Informationen über ein Geraet geholt: UUID von Geraet, Servicetyp von Geraet, An/Abmeldenachricht (optional)
+     * @param DatagramPacket pkt: Das aelteste Paket aus der Listenthread, das über das Multicastsocket empfangen wurde.
      */
     public static void handlePacket( DatagramPacket pkt ){
         System.out.println("      Handling packet."); // DEBUG
@@ -75,7 +78,7 @@ public class Worker implements Runnable {
         System.out.println("      Creating String for content."); // DEBUG
 
         /** Den Inhalt vom Paket in String konvertieren, danach die String zeile für zeile verarbeiten */
-        byte[] buffer = new byte[4096];  // programm bleibt wenn getreveicesocketsize() benutzt wird
+        byte[] buffer = new byte[65536];  // programm bleibt stehen wenn getreveicesocketsize() benutzt wird, deshalb die Grösse 65536 manual schreiben
         buffer = pkt.getData();
         String empfangen = new String(buffer, StandardCharsets.UTF_8);
 
@@ -134,31 +137,30 @@ public class Worker implements Runnable {
             }
 
             /*
-            *  Man sollte vermeiden, innerhalb eines foreach-Blocks die Liste zu modifizieren,
+            *  Man sollte vermeiden, innerhalb eines foreach-Blocks(arbeiten intern mit Iteratoren, falls iterator struktur geaendert dann error)
+            *  die Liste zu modifizieren,
             *  da die Datenstruktur der Liste während der Iteration für Veränderungen gesperrt ist.
             *  Ein Hinzufügen oder Löschen von Elemente führt somit zur java.util.ConcurrentModificationException.
             *  Ein Workaround besteht darin, sich während der Iteration die IDs (die man löschen möchte) in einer
             *  weiteren Liste zwischenzuspeichern und dann über diese Liste zum Löschen zu iterieren.
+            *  Oder einfach normale for schleifen verwenden.
             * */
 
             /** check if there is already a device with the same uuid , if there is, add the new unique service types to it */
             synchronized( List.deviceList ){
                 if( !(List.deviceList.isEmpty()) && !(List.deviceList == null) ){
-
-
-
                         for( int i = 0; i < List.deviceList.size(); i++ ){
 
                             if( List.deviceList.get(i).uuidString.equalsIgnoreCase(uuidString) ){
 
-                                System.out.println("  SAME UUID IDENTIFIED"); // DEBUG
+                                System.out.println("  Same Device UUID identified!"); // DEBUG  System.out.println("  Same Service in the Device identified!"); // DEBUG System.out.println(" New Service Type added to the device"); // DEBUG
                                 sameDevice = true;
                                 if( (!(List.deviceList.get(i).serviceTypes == null) && !(List.deviceList.get(i).serviceTypes.isEmpty()))  && List.deviceList.get(i).serviceTypes.contains(serviceType) ){
-                                    System.out.println("  SAME SERVICE IDENTIFIED"); // DEBUG
+                                    System.out.println("  Same Service in the Device identified!"); // DEBUG
                                 }
                                 else{
                                     List.deviceList.get(i).serviceTypes.add(serviceType);
-                                    System.out.println(" Service Type added to device"); // DEBUG
+                                    System.out.println(" New Service Type added to the device"); // DEBUG
                                 }
 
                             }
@@ -167,11 +169,11 @@ public class Worker implements Runnable {
 
                 }
             }
-
+            /** Neues Geraet erkannt, in die Liste speichern */
             if(!sameDevice){
                 synchronized( List.deviceList ) {
                     List.deviceList.add(dvc);
-                    System.out.println(" Unique Device added to list");  // DEBUG
+                    System.out.println(" New Device added to list");  // DEBUG
                 }
             }
 
@@ -197,7 +199,7 @@ public class Worker implements Runnable {
                     // b3c152d8-blaa-5736-a8c3f32db7a42abdfe:upnp:rootdevice erste Teil trennen
 
                     uuidString = uuidString.split(":", 2)[0];
-                    System.out.println(" *************************  UUID: " + uuidString ); // DEBUG
+                    System.out.println(" UUID of the Device in the Datagramm: " + uuidString ); // DEBUG
                     dvc.uuidString = uuidString;
                     try {
                         uuid = UUID.fromString(uuidString);
@@ -252,14 +254,14 @@ public class Worker implements Runnable {
                     for( int i = 0; i < List.deviceList.size(); i++ ){
                             if( List.deviceList.get(i).uuidString.equalsIgnoreCase(uuidString) ){
 
-                                System.out.println("  SAME UUID IDENTIFIED");
+                                System.out.println("  Same Device UUID identified!"); // DEBUG
                                 sameDevice = true;
                                 if( (List.deviceList.get(i).serviceTypes != null) && !(List.deviceList.get(i).serviceTypes.isEmpty()) && List.deviceList.get(i).serviceTypes.contains(serviceType) ){
-                                    System.out.println("  SAME SERVICE IDENTIFIED");
+                                    System.out.println("  Same Service in the Device identified!"); // DEBUG
                                 }
                                 else{
                                     List.deviceList.get(i).serviceTypes.add(serviceType);
-                                    System.out.println("  Service Type added to device");  // DEBUG
+                                    System.out.println(" New Service Type added to the device"); // DEBUG
                                 }
                             }
                     }

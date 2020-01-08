@@ -8,16 +8,15 @@ import java.util.LinkedList;
 import java.net.DatagramPacket;
 import java.util.UUID;
 
-/** Device Klasse Speichert die Informationen über ein Geraet */
+/** Device Klasse Speichert die Informationen über ein Geraet, ein Geraet hat ein UUID, ein oder mehrere Servicetypen, optional eine NTS zeile für anmelden/abmelden */
 
 public class Device {
 
-    String PacketTyp = null;  // Unicast or Multicast
-    String lines = null;      // Der Inhalt des gelesenen Pakets, die alle informationen über das Geraet enthaelt
+    String PacketTyp = null;  /** Unicast or Multicast */
+    String lines = null;      /** Der Inhalt des gelesenen Pakets, die alle informationen über das Geraet enthaelt, nur zum Testen hinzugefügt */
     UUID uuid = null;
     String uuidString = null;
     LinkedList<String> serviceTypes = new LinkedList<String>();  // Alle Servicetypen eines Geraets (Unicast)
-    // LinkedList<String> nt = new LinkedList<String>();           // Alle Servicetypen eines Geraets (Multicast)
     String nts = null;  // Beim Anmelden: "ssdp:alive" , Beim Abmelden: "ssdp:byebye"
 
     /** Aufruf in List.java, diese Methode listet alle gespeicherten Informationen über ein Geraet. (UUID und Servicetypen) */

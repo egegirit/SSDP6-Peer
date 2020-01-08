@@ -1,24 +1,23 @@
 package edu.udo.cs.rvs.ssdp;
 
-import java.util.UUID;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.MulticastSocket;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
-public class SSDPTester implements Runnable
+public class SSDPTester2 implements Runnable
 {
     public MulticastSocket ms;
     String testUUID = "91e0a05b-b69b-4826-8ad7-549c273d913a";
-    
+
     public static void main(final String[] args) throws IOException, InterruptedException {
-        SSDPTester st = null;
+        SSDPTester2 st = null;
         try {
-            st = new SSDPTester();
+            st = new SSDPTester2();
             final Thread t = new Thread(st);
             t.start();
         }
@@ -33,14 +32,14 @@ public class SSDPTester implements Runnable
             if (br.ready() && br.readLine().equalsIgnoreCase("exit")) {
                 System.exit(0);
             }
-            if ( Math.random() < 0.7 ) {
+            if (Math.random() < 0.01) {
                 st.notifyRandom();
             }
             Thread.sleep(100L);
         }
     }
-    
-    public SSDPTester() throws Exception {
+
+    public SSDPTester2() throws Exception {
         (this.ms = new MulticastSocket(1900)).joinGroup(InetAddress.getByName("239.255.255.250"));
     }
     
@@ -61,7 +60,7 @@ public class SSDPTester implements Runnable
     private void handle(final DatagramPacket dp) {
         final String lines = new String(dp.getData(), StandardCharsets.UTF_8);
         final String[] line = lines.split("\\r?\\n");
-        System.out.println(" >> Received Packet: ");
+        System.out.println(" >> Received Packet: " + '\n' + lines);
         String[] array;
         for (int length = (array = line).length, j = 0; j < length; ++j) {
             final String l = array[j];
@@ -84,7 +83,7 @@ public class SSDPTester implements Runnable
                 for (int length2 = (array2 = line).length, k = 0; k < length2; ++k) {
                     final String i = array2[k];
                     if (i.startsWith("S: ")) {
-                        u = i.split("S: ", 2)[1].split("uuid:", 2)[1];
+                        u = i.split("S: ", 2)[1].split("uuid:", 2)[1];   // Mein UUID
                         try {
                             uuid = UUID.fromString(u);
                             continue;
@@ -111,8 +110,8 @@ public class SSDPTester implements Runnable
             }
             else {
                 final UUID u2 = UUID.randomUUID();
-                final String data = "HTTP/1.1 200 OK\r\nS: uuid:" + u + "\r\n" + "ST: ge:teapot\r\n" + "USN: uuid:" + testUUID + "\r\n" + "\r\n";
-                System.out.println("Announcing (reply): " + u2.toString());
+                final String data = "HTTP/1.1 200 OK\r\nS: uuid:" + u + "\r\n" + "ST: ge:fridge\r\n" + "USN: uuid:" + testUUID + "\r\n" + "\r\n";  // u ist Mein UUID, testUUID ist id von geraet
+                System.out.println("SENDING: " + data);
                 System.out.println(dp.getAddress().toString());
                 System.out.println(dp.getPort());
                 try {
@@ -120,6 +119,7 @@ public class SSDPTester implements Runnable
                     final DatagramPacket dpsm = new DatagramPacket(data.getBytes(StandardCharsets.UTF_8), data.getBytes(StandardCharsets.UTF_8).length, InetAddress.getByName("239.255.255.250"), dp.getPort());
                     this.ms.send(dps);
                     this.ms.send(dpsm);
+                    System.out.println("SENT!");
                 }
                 catch (Exception exc) {
                     System.out.println("Failed to send!");
@@ -129,12 +129,13 @@ public class SSDPTester implements Runnable
     }
     
     private void notifyRandom() {
-        final UUID u = UUID.randomUUID();
-        final String data = "NOTIFY * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nSERVER: Debian/wheezy UPnP/1.1 MiniUPnPd/2.1\r\nNT: upnp:rootdevice\r\nUSN: uuid:" + u.toString() + ((Math.random() < 0.5) ? "" : ":") + ":upnp:rootdevice\r\n" + "NTS: " + ((Math.random() < 0.1) ? "ssdp:alive" : "ssdp:byebye") + "\r\n" + "\r\n";
-        System.out.println("Announcing (notify): " + u.toString());
+        final UUID u = UUID.randomUUID();  // ID VOM?
+        final String data = "NOTIFY * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nSERVER: Debian/wheezy UPnP/1.1 MiniUPnPd/2.1\r\nNT: upnp:rootdevice\r\nUSN: uuid:" + testUUID + ((Math.random() < 0.5) ? "" : ":") + ":upnp:rootdevice\r\n" + "NTS: " + ((Math.random() < 0.3) ? "ssdp:alive" : "ssdp:byebye") + "\r\n" + "\r\n";
+        System.out.println("SENDING NOTIFY: " + data );
         try {
             final DatagramPacket dps = new DatagramPacket(data.getBytes(StandardCharsets.UTF_8), data.getBytes(StandardCharsets.UTF_8).length, InetAddress.getByName("239.255.255.250"), 1900);
             this.ms.send(dps);
+            System.out.println("SENT NOTIFY!");
         }
         catch (Exception exc) {
             System.out.println("Failed to send!");

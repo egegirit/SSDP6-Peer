@@ -44,7 +44,7 @@ public class User implements Runnable  {
 
     }
 
-    /** Eine Suchanfrage nach Geraeten senden.  */
+    /** Eine Suchanfrage nach Geraeten senden (Gruppennummer: "239.255.255.250" Portnummer: 1900).  */
     public static void scanDevices(){
 
         UUID uuid = null;
@@ -83,7 +83,9 @@ public class User implements Runnable  {
 
     }
 
-    /**     Methode zum erkennen und bearbeiten der Benutzereingaben    */
+    /** Methode zum erkennen und bearbeiten der Benutzereingaben
+     *  @param String befehl: Die Benutzereingabe, die in der Konsole erfolgt ist
+     * */
     public static void handleInput(String befehl){
 
         switch (befehl) {
@@ -94,16 +96,17 @@ public class User implements Runnable  {
                     List.mcsocket.leaveGroup(InetAddress.getByName("239.255.255.250"));
                     System.out.println("Socket leaving group 239.255.255.250.");  // DEBUG
                     List.mcsocket.close();
-                    System.out.println("Socket closed.");  // DEBUG
-                    System.gc();  // Garbage collector
+
                 } catch (IOException e) { e.printStackTrace(); }
 
+                System.out.println("Socket closed.");  // DEBUG
+                System.gc();  // Garbage collector raeumt alle unbenutzten Ressourcen
                 System.out.println("Exiting...");
                 System.exit(0);
-                break;
+                break;  // Code erreicht hier nicht
             }
             case "CLEAR": {
-                /** Input: "CLEAR" -> alle Geräte vergessen, threadsync */
+                /** Input: "CLEAR" -> alle Geräte vergessen, threadsync  */
                 synchronized( List.dgramList ) {  // Müssen auch die Pakete gelöscht werden? wenn nein entfene dies
                     List.dgramList.clear();
                 }
@@ -137,7 +140,10 @@ public class User implements Runnable  {
                 System.out.println("  Scan command sent!");  // DEBUG
                 break;
             }
-            default: { System.out.println("Wrong Input: " + befehl); }
+            default: { /** Unbekannte Eingabe */
+                System.out.println("Wrong Input: " + befehl);
+                System.out.println("Input Options(Case sensitive): EXIT, SCAN, CLEAR, LIST" );
+            }
 
         } // switch case end
 
